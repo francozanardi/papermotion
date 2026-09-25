@@ -1,6 +1,7 @@
 # papermotion — guide for agents working on this codebase
 
-Read `README.md` first for what each module does.
+Read `README.md` first for what each module does, and `docs/field-notes.md` before making a scene:
+it collects the mistakes we made and the fixes that worked.
 
 ## Principles
 
