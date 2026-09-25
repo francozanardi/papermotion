@@ -1,4 +1,5 @@
 import type { V } from '../core/math';
+import type { Surface } from './Surface';
 
 export interface Pt {
   x: number; y: number;
@@ -27,8 +28,8 @@ interface Link { a: Pt; b: Pt; len: number; stiff: number; rope: boolean }
 export interface PointOpts { mass?: number; drag?: number; dragY?: number; friction?: number; gravity?: number }
 
 /**
- * Minimal Verlet world: points, distance links, wind drag, a ground line.
- * Fixed timestep, deterministic.
+ * Minimal Verlet world: points, distance links, wind drag, a ground line, one-way surfaces
+ * and colliders. Fixed timestep, deterministic.
  */
 export class World {
   readonly pts: Pt[] = [];
@@ -38,6 +39,8 @@ export class World {
   iterations = 32;
   wind: (x: number, y: number, t: number) => V = () => ({ x: 0, y: 0 });
   ground: (x: number) => number = () => 1e9;
+  /** Platforms above the ground (roofs, branches): landed on from above, passed through from below. */
+  readonly surfaces: Surface[] = [];
   readonly colliders: Collider[] = [];
 
   point(x: number, y: number, o: PointOpts = {}): Pt {
@@ -63,6 +66,19 @@ export class World {
       pts.push(p);
     }
     return pts;
+  }
+
+  /**
+   * The floor under a point: the highest surface at x that is at or below y (or the ground).
+   * Walkers query it slightly above their feet so they can climb gentle slopes.
+   */
+  floorBelow(x: number, y: number): number {
+    let floor = this.ground(x);
+    for (const s of this.surfaces) {
+      const h = s.heightAt(x);
+      if (h !== undefined && h >= y && h < floor) floor = h;
+    }
+    return floor;
   }
 
   /** Move a kinematic point (invMass 0), carrying its velocity. */
@@ -115,9 +131,14 @@ export class World {
   private collideGround(): void {
     for (const p of this.pts) {
       if (p.invMass === 0) continue;
-      const g = this.ground(p.x);
-      p.grounded = p.y >= g;
-      if (p.grounded) p.y = g;
+      let floor = this.ground(p.x);
+      for (const s of this.surfaces) {
+        const h = s.heightAt(p.x);
+        // One-way: only catch points that were on or above the surface when the step began.
+        if (h !== undefined && h < floor && p.py <= (s.heightAt(p.px) ?? h) + 0.5) floor = h;
+      }
+      p.grounded = p.y >= floor;
+      if (p.grounded) p.y = floor;
     }
   }
 

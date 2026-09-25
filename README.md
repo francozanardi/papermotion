@@ -7,7 +7,7 @@ performance — on top of a generic engine, so a 10-second short is a few hundre
 
 ```bash
 pnpm install
-pnpm render sea     # render offline → out/sea.mp4   (kite | autumn | sea | all)
+pnpm render sea     # render offline → out/sea.mp4   (kite | autumn | sea | rooftops | all)
 pnpm dev            # http://localhost:5299/?example=sea plays out/sea.mp4
                     # add &live to run the scene in the browser instead (quick iteration, may stutter)
 pnpm test
@@ -22,9 +22,9 @@ The live view is only a sketchpad.
 | Module | What it gives you |
 | --- | --- |
 | `core` | Vectors, easing, IK, seeded randomness and noise, springs. |
-| `physics` | A deterministic Verlet `World` (wind/current, ground, hard and soft colliders), rigid `Plate`s with aerofoil behaviour, `rope`s, `SoftBody` (shape-matched blobs you can animate). |
-| `rig` | `Skeleton` of spring-driven bones (lag, overlap, follow-through), biped `Gait`, `Hair` made of locks. |
-| `motion` | `Swimmer` (side-view swimming locomotion), `steer` behaviours, `School` (boids). |
+| `physics` | A deterministic Verlet `World` (wind/current, ground, one-way `Surface`s like roofs and branches, hard and soft colliders), rigid `Plate`s with aerofoil behaviour, `rope`s, `SoftBody` (shape-matched blobs you can animate). |
+| `rig` | `Skeleton` of spring-driven bones (lag, overlap, follow-through, pose blending), legged `Gait` (bipeds and quadrupeds), `Strand` (a chain that remembers its shape: tails, antennae), `Hair` made of strands. |
+| `motion` | `Swimmer` (side-view swimming or flying locomotion), `steer` behaviours, `School` (boids), `Leap` (ballistic jumps planned from A to B). |
 | `paper` | The `Paper` renderer: torn edges that boil, fiber texture, drop shadows, rim light from a scene light, translucent layers, light shafts. |
 | `scenery` | Noise `ridge`s with strata, parametric `flora` (tufts, trees, pines, bushes, rocks, flowers, corals, clouds), `scatter` along a layer with wind sway and pushers. |
 | `camera` | Spring-follow camera with parallax layers by depth, zoom and handheld drift. |
@@ -50,7 +50,7 @@ class Marea extends Stage {
 }
 ```
 
-See `examples/` for three complete shorts: `kite` (time-shaped intents), `autumn` and `sea` (beats).
+See `examples/` for complete shorts: `kite` (time-shaped intents), `autumn`, `sea` and `rooftops` (beats).
 
 ## Rendering and the capture contract
 

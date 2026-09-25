@@ -34,9 +34,12 @@ export class Camera {
     return this.followY.pos.y + noise1(this.t * 0.8, 32) * (this.o.handheld ?? 5) * 0.7;
   }
 
+  /** Jump to a target and stand still there (no leftover follow velocity). */
   snap(x: number, y?: number): void {
     this.follow.pos.x = x;
+    this.follow.vel = { x: 0, y: 0 };
     if (y !== undefined) this.followY.pos.y = y - this.o.height / 2;
+    this.followY.vel = { x: 0, y: 0 };
   }
 
   /** Follow a target; `targetY` (world) is optional, default keeps the action plane centered. */

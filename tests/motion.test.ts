@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type Prop, type SwimSpec, Swimmer, drawProps, steer } from '../src';
+import { type Prop, type SwimSpec, Leap, Swimmer, drawProps, steer } from '../src';
 import type { Paper } from '../src';
 
 const DT = 1 / 60;
@@ -52,5 +52,17 @@ describe('drawProps pushers', () => {
     sways.length = 0;
     drawProps(paper, set, -500, 500, () => 0, 0, [{ x: 30, y: 500 }]);
     expect(sways[0]).toBe(0);
+  });
+});
+
+describe('Leap', () => {
+  it('lands exactly on target, peaking at the apex', () => {
+    const leap = new Leap({ x: 0, y: 500 }, { x: 400, y: 420 }, 90, 2600);
+    const end = leap.at(leap.duration);
+    expect(end.x).toBeCloseTo(400);
+    expect(end.y).toBeCloseTo(420);
+    let top = Infinity;
+    for (let t = 0; t <= leap.duration; t += 0.001) top = Math.min(top, leap.at(t).y);
+    expect(top).toBeCloseTo(330, 0);
   });
 });

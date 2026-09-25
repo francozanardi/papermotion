@@ -1,7 +1,8 @@
 import type { V } from '../core/math';
 import { rng } from '../core/random';
 import type { Paper } from '../paper/Paper';
-import { type Pt, World } from '../physics/World';
+import type { World } from '../physics/World';
+import { Strand } from './Strand';
 
 export interface LockSpec {
   /** Root position on the scalp circle, degrees in the head frame (0 = forward, -90 = up). */
@@ -41,13 +42,13 @@ export interface HairMaterial {
   bend: number;
 }
 
-interface Lock { spec: LockSpec; pts: Pt[]; rest: V[]; color: string; sheen: boolean }
+interface Lock { spec: LockSpec; strand: Strand; color: string; sheen: boolean }
 
 /** Leaf-shaped lock: narrow root tucked into the scalp, belly at a third, pointed tip. */
 const lockWidth = (w: number) => (u: number) => (u < 0.3 ? w * (0.55 + 0.45 * (u / 0.3)) : w * (1 - ((u - 0.3) / 0.7) ** 1.25 * 0.94));
 
 /**
- * Hair as individual locks. Each lock is a short Verlet strand that remembers its styled shape
+ * Hair as individual locks. Each lock is a `Strand` that remembers its styled shape
  * (in head space), resists folding, and lags, flows and whips with motion and wind.
  */
 export class Hair {
@@ -55,13 +56,12 @@ export class Hair {
 
   constructor(
     world: World,
-    private readonly frame: () => (p: V) => V,
+    frame: () => (p: V) => V,
     private readonly radius: number,
     private readonly style: HairStyle,
     private readonly material: HairMaterial,
     private readonly seed: number,
   ) {
-    const f = frame();
     const r = rng(seed);
     const j = style.jitter;
     for (const base of style.locks) {
@@ -74,17 +74,11 @@ export class Hair {
           curl: base.curl * (0.7 + r() * 0.6),
         };
         const tone = Math.min(style.palette.length - 1, Math.max(0, spec.tone + (r() > 0.7 ? 1 : 0) - (r() > 0.8 ? 1 : 0)));
-        const rest = this.restShape(spec);
-        const pts = rest.map((p, i) => {
-          const w = f(p);
-          return world.point(w.x, w.y, i === 0 ? { mass: Infinity } : { mass: 0.04, drag: material.drag, gravity: 0.5 });
-        });
-        for (let i = 1; i < pts.length; i++) world.link(pts[i - 1], pts[i], 0.95);
-        for (let i = 2; i < pts.length; i++) world.link(pts[i - 2], pts[i], material.bend);
-        this.locks.push({ spec, pts, rest, color: style.palette[tone], sheen: spec.layer === 'over' && tone >= style.palette.length - 2 && r() > 0.35 });
+        const strand = new Strand(world, frame, this.restShape(spec), { hold: material.hold, drag: material.drag, bend: material.bend });
+        strand.strength = spec.hold ?? 1;
+        this.locks.push({ spec, strand, color: style.palette[tone], sheen: spec.layer === 'over' && tone >= style.palette.length - 2 && r() > 0.35 });
       }
     }
-    world.forces.push(dt => this.holdShape(dt));
   }
 
   private restShape(s: LockSpec): V[] {
@@ -102,32 +96,14 @@ export class Hair {
     return pts;
   }
 
-  /** Pin roots to the scalp and pull each point toward its styled rest position. */
-  private holdShape(dt: number): void {
-    const f = this.frame();
-    const n = this.material.segments;
-    for (const lock of this.locks) {
-      const root = f(lock.rest[0]);
-      World.drive(lock.pts[0], root.x, root.y);
-      const hold = this.material.hold * (lock.spec.hold ?? 1);
-      for (let i = 1; i <= n; i++) {
-        const p = lock.pts[i], target = f(lock.rest[i]);
-        const k = hold * (1 - ((i - 1) / n) * 0.6);
-        const vx = (p.x - p.px) / dt, vy = (p.y - p.py) / dt;
-        p.ax += k * (target.x - p.x) - 6 * vx;
-        p.ay += k * (target.y - p.y) - 6 * vy;
-      }
-    }
-  }
-
   draw(paper: Paper, layer: 'under' | 'over'): void {
     this.locks.forEach((lock, i) => {
       if (lock.spec.layer !== layer) return;
       const w = lock.spec.width;
-      paper.ribbon(lock.pts, lockWidth(w), lock.color, { seed: this.seed + i, tear: 0.7, shadow: layer === 'over' ? 4 : 2, edge: layer === 'over' && i % 4 === 0 });
+      paper.ribbon(lock.strand.pts, lockWidth(w), lock.color, { seed: this.seed + i, tear: 0.7, shadow: layer === 'over' ? 4 : 2, edge: layer === 'over' && i % 4 === 0 });
       if (lock.sheen) {
         const sheenW = (u: number) => (u < 0.12 || u > 0.62 ? 0.3 : w * 0.16 * Math.sin(((u - 0.12) / 0.5) * Math.PI));
-        paper.ribbon(lock.pts, sheenW, this.style.sheen, { seed: this.seed + 500 + i, tear: 0.3, shadow: 0, edge: false, texture: 0 });
+        paper.ribbon(lock.strand.pts, sheenW, this.style.sheen, { seed: this.seed + 500 + i, tear: 0.3, shadow: 0, edge: false, texture: 0 });
       }
     });
   }

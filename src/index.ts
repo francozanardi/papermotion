@@ -3,25 +3,28 @@ export * from './core/math';
 export * from './core/random';
 export { Spring } from './core/Spring';
 
-// Physics: points and links, rigid plates, strings, soft bodies
+// Physics: points and links, rigid plates, strings, soft bodies, platforms
 export { World, type Pt, type PointOpts, type Collider } from './physics/World';
 export { Plate, type AerofoilSpec } from './physics/Plate';
 export { rope } from './physics/rope';
 export { SoftBody, type SoftOpts } from './physics/SoftBody';
+export { Surface } from './physics/Surface';
 
-// Rigs: bones, biped gait, hair
+// Rigs: bones, legged gait, strands, hair
 export { Bone, type BoneDef, type BoneSpring } from './rig/Bone';
 export { Skeleton } from './rig/Skeleton';
 export { Gait, type GaitConfig, type GaitInput } from './rig/Gait';
+export { Strand, type StrandMaterial } from './rig/Strand';
 export { Hair, type LockSpec, type HairStyle, type HairMaterial } from './rig/Hair';
 
-// Motion: swimming, steering, schools
+// Motion: swimming, steering, schools, leaps
 export { Swimmer, type SwimSpec, type SwimPose } from './motion/Swimmer';
 export { steer } from './motion/steer';
 export { School, type SchoolSpec, type Member } from './motion/School';
+export { Leap } from './motion/Leap';
 
 // Paper rendering
-export { Paper, type PieceOpts, type Light } from './paper/Paper';
+export { Paper, type PieceOpts, type SheetOpts, type Light } from './paper/Paper';
 export { circlePoly, tubePoly } from './paper/geometry';
 export { drawShafts, type ShaftSpec } from './paper/shafts';
 

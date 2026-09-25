@@ -44,6 +44,18 @@ export class Skeleton {
     b.target = angle - (b.parent?.world ?? 0);
   }
 
+  /**
+   * Blend bone targets toward a pose (relative angles) by `weight` 0…1: sitting, curling up, a stretch.
+   * Call after anything else that sets targets this step (gait, IK), before `step`.
+   */
+  pose(targets: Readonly<Record<string, number>>, weight: number): void {
+    if (weight <= 0) return;
+    for (const name in targets) {
+      const b = this.get(name);
+      b.target += (targets[name] - b.target) * Math.min(1, weight);
+    }
+  }
+
   /** Two-bone IK: aim `upper`+`lower` so the chain ends at `target` (local space). */
   reach(upper: string, lower: string, target: V, bend: number): void {
     const a = this.get(upper), b = this.get(lower);
@@ -72,6 +84,12 @@ export class Skeleton {
   point(name: string, u = 1, offset: V = { x: 0, y: 0 }): V {
     const b = this.get(name);
     return this.map(add(b.start, rot({ x: b.def.length * u + offset.x, y: offset.y }, b.world)));
+  }
+
+  /** A frame riding a bone: +x along the bone, +y to its right (local → world). Tails, ears, props held. */
+  boneFrame(name: string): (p: V) => V {
+    const b = this.get(name);
+    return (p: V) => this.map(add(b.start, rot(p, b.world)));
   }
 
   /**

@@ -19,6 +19,10 @@ export const EXAMPLES: Record<string, () => Promise<MakeStage>> = {
     const { AutumnScene } = await import('./autumn/main');
     return canvas => new AutumnScene(canvas);
   },
+  rooftops: async () => {
+    const { RooftopsScene } = await import('./rooftops/main');
+    return canvas => new RooftopsScene(canvas);
+  },
   sea: async () => {
     const { SeaScene } = await import('./sea/main');
     return canvas => new SeaScene(canvas);

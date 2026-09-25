@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SoftBody, World, circlePoly, rope } from '../src';
+import { SoftBody, Surface, World, circlePoly, rope } from '../src';
 
 const DT = 1 / 60;
 
@@ -64,5 +64,20 @@ describe('SoftBody', () => {
     for (let i = 0; i < 180; i++) world.step(DT, i * DT);
     const width = Math.max(...body.pts.map(p => p.x)) - Math.min(...body.pts.map(p => p.x));
     expect(width).toBeCloseTo(60, -1);
+  });
+});
+
+describe('Surface', () => {
+  it('catches things falling from above and lets them pass from below', () => {
+    const world = new World();
+    world.surfaces.push(new Surface([{ x: 0, y: 500 }, { x: 200, y: 400 }]));
+    const falling = world.point(100, 300, { mass: 1 });
+    const rising = world.point(150, 600, { mass: 1, gravity: -1 });
+    for (let i = 0; i < 120; i++) world.step(DT, i * DT);
+    expect(falling.y).toBeCloseTo(450, 0);
+    expect(falling.grounded).toBe(true);
+    expect(rising.y).toBeLessThan(400);
+    expect(world.floorBelow(100, 300)).toBeCloseTo(450);
+    expect(world.floorBelow(100, 460)).toBe(world.ground(100));
   });
 });
