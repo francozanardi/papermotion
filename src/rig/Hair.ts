@@ -96,6 +96,14 @@ export class Hair {
     return pts;
   }
 
+  /**
+   * How firmly the hair keeps its style and body, 0…1 (default 1). Lower it for wet hair that hangs and
+   * clings, or when the head lies down and the hair should fall with gravity instead of standing up.
+   */
+  set strength(k: number) {
+    for (const lock of this.locks) { lock.strand.strength = (lock.spec.hold ?? 1) * k; lock.strand.flex = Math.min(1, k); }
+  }
+
   draw(paper: Paper, layer: 'under' | 'over'): void {
     this.locks.forEach((lock, i) => {
       if (lock.spec.layer !== layer) return;

@@ -70,7 +70,8 @@ if (unknown.length) throw new Error(`Unknown example(s): ${unknown.join(', ')}. 
 
 mkdirSync(OUT, { recursive: true });
 const codec = encoder();
-const server = await createServer({ server: { port: 0 }, logLevel: 'error' });
+// No HMR and no file watching: editing sources while a render runs must not reload the page mid-video.
+const server = await createServer({ server: { port: 0, hmr: false, watch: null }, logLevel: 'error' });
 await server.listen();
 const base = server.resolvedUrls!.local[0].replace(/\/$/, '');
 const browser = await chromium.launch({ executablePath: findChromium() });

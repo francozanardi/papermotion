@@ -23,7 +23,8 @@ export interface Pt {
  */
 export interface Collider { x: number; y: number; r: number; soft?: number }
 
-interface Link { a: Pt; b: Pt; len: number; stiff: number; rope: boolean }
+/** A distance constraint. Its ends and length may be changed later (a line paying out, a rope reeled in). */
+export interface Link { a: Pt; b: Pt; len: number; stiff: number; rope: boolean }
 
 export interface PointOpts { mass?: number; drag?: number; dragY?: number; friction?: number; gravity?: number }
 
@@ -53,8 +54,10 @@ export class World {
     return p;
   }
 
-  link(a: Pt, b: Pt, stiff = 1, rope = false, length?: number): void {
-    this.links.push({ a, b, stiff, rope, len: length ?? Math.hypot(b.x - a.x, b.y - a.y) });
+  link(a: Pt, b: Pt, stiff = 1, rope = false, length?: number): Link {
+    const l = { a, b, stiff, rope, len: length ?? Math.hypot(b.x - a.x, b.y - a.y) };
+    this.links.push(l);
+    return l;
   }
 
   /** A hanging chain starting at `from` (included), extending along `dir`. */

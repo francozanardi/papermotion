@@ -1,5 +1,5 @@
 import type { V } from '../core/math';
-import { type Pt, World } from '../physics/World';
+import { type Link, type Pt, World } from '../physics/World';
 
 export interface StrandMaterial {
   /** Pull toward the rest shape at the root (1/s²); fades toward the tip. */
@@ -20,6 +20,7 @@ export interface StrandMaterial {
  */
 export class Strand {
   readonly pts: Pt[];
+  private readonly bends: Link[] = [];
 
   /**
    * @param frame returns the current local → world mapping of the frame the strand grows from.
@@ -32,12 +33,21 @@ export class Strand {
       return world.point(w.x, w.y, i === 0 ? { mass: Infinity } : { mass: m.mass ?? 0.04, drag: m.drag, gravity: m.gravity ?? 0.5 });
     });
     for (let i = 1; i < this.pts.length; i++) world.link(this.pts[i - 1], this.pts[i], 0.95);
-    for (let i = 2; i < this.pts.length; i++) world.link(this.pts[i - 2], this.pts[i], m.bend);
+    for (let i = 2; i < this.pts.length; i++) this.bends.push(world.link(this.pts[i - 2], this.pts[i], m.bend));
     world.forces.push(dt => this.hold(dt, this.m.hold));
   }
 
   /** Scale the hold for this strand (e.g. a fringe that keeps its shape better). */
   strength = 1;
+
+  /**
+   * Scale the resistance to folding, 0…1 (default 1). With many solver iterations even soft skip-links
+   * make a strand springy; lower it for one that should drape, fold and pile up like cloth (a wet
+   * scarf end on the ground, soaked hair). Pair it with a lower `strength` so the style lets go too.
+   */
+  set flex(k: number) {
+    for (const l of this.bends) l.stiff = this.m.bend * k;
+  }
 
   private hold(dt: number, hold: number): void {
     const f = this.frame(), n = this.pts.length - 1, falloff = this.m.falloff ?? 0.6;

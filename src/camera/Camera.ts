@@ -1,5 +1,6 @@
 import { noise1 } from '../core/random';
 import { Spring } from '../core/Spring';
+import { Paper } from '../paper/Paper';
 
 export interface CameraOpts {
   width: number;
@@ -9,7 +10,23 @@ export interface CameraOpts {
   damping?: number;
   /** Handheld drift in px. */
   handheld?: number;
+  /** How fast zoom, roll and handheld ease toward a framing (1/s). */
+  ease?: number;
 }
+
+/** What a shot wants the camera to show: a world point at the center of the frame, and how. */
+export interface Framing {
+  x: number;
+  y: number;
+  zoom: number;
+  /** Dutch angle (rad). */
+  roll?: number;
+  /** Handheld drift (px); a close-up can shake more than a locked-off wide. */
+  handheld?: number;
+}
+
+/** The part of a layer the camera sees, in that layer's coordinates (with a margin). */
+export interface View { from: number; to: number; top: number; bottom: number }
 
 /**
  * 2D camera with parallax: each layer has a depth (0 = infinitely far, 1 = the action plane,
@@ -17,6 +34,8 @@ export interface CameraOpts {
  */
 export class Camera {
   zoom = 1;
+  roll = 0;
+  handheld: number;
   private readonly follow: Spring;
   private readonly followY: Spring;
   private t = 0;
@@ -24,14 +43,15 @@ export class Camera {
   constructor(x: number, private readonly o: CameraOpts) {
     this.follow = new Spring({ x, y: 0 }, o.stiffness ?? 9, o.damping ?? 6);
     this.followY = new Spring({ x: 0, y: 0 }, o.stiffness ?? 9, o.damping ?? 6);
+    this.handheld = o.handheld ?? 5;
   }
 
   get x(): number {
-    return this.follow.pos.x + noise1(this.t * 0.9, 31) * (this.o.handheld ?? 5);
+    return this.follow.pos.x + noise1(this.t * 0.9, 31) * this.handheld;
   }
 
   private get y(): number {
-    return this.followY.pos.y + noise1(this.t * 0.8, 32) * (this.o.handheld ?? 5) * 0.7;
+    return this.followY.pos.y + noise1(this.t * 0.8, 32) * this.handheld * 0.7;
   }
 
   /** Jump to a target and stand still there (no leftover follow velocity). */
@@ -42,6 +62,14 @@ export class Camera {
     this.followY.vel = { x: 0, y: 0 };
   }
 
+  /** A hard cut: jump straight to a framing, zoom and roll included. */
+  cut(f: Framing): void {
+    this.snap(f.x, f.y);
+    this.zoom = f.zoom;
+    this.roll = f.roll ?? 0;
+    this.handheld = f.handheld ?? this.o.handheld ?? 5;
+  }
+
   /** Follow a target; `targetY` (world) is optional, default keeps the action plane centered. */
   update(targetX: number, dt: number, t: number, targetY?: number): void {
     this.t = t;
@@ -49,21 +77,35 @@ export class Camera {
     this.followY.step({ x: 0, y: targetY === undefined ? 0 : targetY - this.o.height / 2 }, dt);
   }
 
-  /** Draw inside the transform of a layer at `depth`. */
-  layer(ctx: CanvasRenderingContext2D, depth: number, draw: (view: { from: number; to: number }) => void): void {
+  /** Ease toward a framing: position on the follow spring; zoom, roll and handheld exponentially. */
+  frame(f: Framing, dt: number, t: number): void {
+    this.update(f.x, dt, t, f.y);
+    const k = 1 - Math.exp(-(this.o.ease ?? 2.2) * dt);
+    this.zoom += (f.zoom - this.zoom) * k;
+    this.roll += ((f.roll ?? 0) - this.roll) * k;
+    this.handheld += ((f.handheld ?? this.o.handheld ?? 5) - this.handheld) * k;
+  }
+
+  /**
+   * Draw inside the transform of a layer at `depth`. Pass the `Paper` (not a raw context) to draw into
+   * whatever it is drawing on right now: inside `paper.layer` or `paper.sheet` that is an offscreen
+   * canvas, and a transform set on the main context would not reach it.
+   */
+  layer(target: CanvasRenderingContext2D | Paper, depth: number, draw: (view: View) => void): void {
+    const ctx = target instanceof Paper ? target.context : target;
     const { width: W, height: H } = this.o;
     if (!Number.isFinite(this.zoom) || !Number.isFinite(this.x) || !Number.isFinite(this.y)) {
       throw new Error(`Camera has a non-finite value (zoom=${this.zoom}, x=${this.x}, y=${this.y})`);
     }
     const z = this.zoom ** depth;
-    const offset = (this.x - W / 2) * depth;
+    const offset = (this.x - W / 2) * depth, lift = this.y * depth;
     ctx.save();
     ctx.translate(W / 2, H / 2);
     ctx.scale(z, z);
-    ctx.rotate(noise1(this.t * 0.5, 33) * 0.003 * depth);
-    ctx.translate(-W / 2 - offset, -H / 2 - this.y * depth);
-    const half = W / 2 / z;
-    draw({ from: W / 2 + offset - half - 50, to: W / 2 + offset + half + 50 });
+    ctx.rotate(noise1(this.t * 0.5, 33) * 0.003 * depth + this.roll);
+    ctx.translate(-W / 2 - offset, -H / 2 - lift);
+    const grow = 1 + Math.abs(this.roll) * 1.2, half = (W / 2 / z) * grow, halfH = (H / 2 / z) * grow;
+    draw({ from: W / 2 + offset - half - 50, to: W / 2 + offset + half + 50, top: H / 2 + lift - halfH - 50, bottom: H / 2 + lift + halfH + 50 });
     ctx.restore();
   }
 }

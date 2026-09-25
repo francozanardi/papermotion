@@ -34,8 +34,6 @@ export interface SheetOpts {
   alpha?: number;
 }
 
-const EDGE_COLOR = 'rgba(255, 246, 232, 0.28)';
-const SHADOW_COLOR = 'rgba(18, 10, 28, 0.38)';
 
 /** Scene light: direction the light travels (unit-ish vector), e.g. {x:-1,y:0.2} for a low sun on the right. */
 export interface Light { x: number; y: number }
@@ -53,6 +51,12 @@ export class Paper {
   private flatDepth = 0;
   boil = 0;
   light: Light = { x: -0.8, y: 0.6 };
+  /**
+   * Color of the light cut edge on every piece. Tone it down for far layers at night, where a bright
+   * edge on dark shapes turns scenery into line art.
+   */
+  edgeColor = 'rgba(255, 246, 232, 0.28)';
+  shadowColor = 'rgba(18, 10, 28, 0.38)';
 
   constructor(main: CanvasRenderingContext2D) {
     this.ctx = main;
@@ -66,8 +70,11 @@ export class Paper {
   /**
    * Draw a group of pieces as one sheet and composite it with `alpha` / `blend`:
    * vellum and tracing paper (jellyfish, light shafts, ghosts). Overlaps inside don't double up.
+   * `filter` is a canvas filter for the composite, e.g. `'blur(6px)'` for a layer out of focus.
+   * Without a `blend` it composites the way the context currently does, so inside `paper.inside` a
+   * translucent layer (a smear of mud) still stays within the sheet.
    */
-  layer(alpha: number, draw: () => void, blend: GlobalCompositeOperation = 'source-over'): void {
+  layer(alpha: number, draw: () => void, blend?: GlobalCompositeOperation, filter = 'none'): void {
     const outer = this.ctx, g = this.scratch.borrow();
     g.setTransform(outer.getTransform());
     this.ctx = g;
@@ -75,7 +82,8 @@ export class Paper {
     outer.save();
     outer.setTransform(1, 0, 0, 1, 0, 0);
     outer.globalAlpha = alpha;
-    outer.globalCompositeOperation = blend;
+    if (blend) outer.globalCompositeOperation = blend;
+    outer.filter = filter;
     outer.drawImage(g.canvas, 0, 0);
     outer.restore();
     this.scratch.release();
@@ -114,7 +122,7 @@ export class Paper {
     outer.setTransform(1, 0, 0, 1, 0, 0);
     outer.globalAlpha = o.alpha ?? 1;
     if (o.shadow !== 0) {
-      outer.shadowColor = SHADOW_COLOR;
+      outer.shadowColor = this.shadowColor;
       outer.shadowBlur = o.shadow ?? 9;
       outer.shadowOffsetY = (o.shadow ?? 9) * 0.45;
     }
@@ -165,7 +173,7 @@ export class Paper {
 
     ctx.save();
     if (o.shadow !== 0) {
-      ctx.shadowColor = 'rgba(18, 10, 28, 0.38)';
+      ctx.shadowColor = this.shadowColor;
       ctx.shadowBlur = o.shadow ?? 9;
       ctx.shadowOffsetY = (o.shadow ?? 9) * 0.45;
     }
@@ -191,7 +199,7 @@ export class Paper {
 
     if (o.edge !== false) {
       ctx.save();
-      ctx.strokeStyle = 'rgba(255, 246, 232, 0.28)';
+      ctx.strokeStyle = this.edgeColor;
       ctx.lineWidth = 1.4;
       ctx.stroke(path);
       ctx.restore();
@@ -307,7 +315,7 @@ export class Paper {
     ring.globalCompositeOperation = 'destination-out';
     blit(ring, eroded, b);
     ring.globalCompositeOperation = 'source-in';
-    ring.fillStyle = EDGE_COLOR;
+    ring.fillStyle = this.edgeColor;
     ring.fillRect(b.x, b.y, b.w, b.h);
     g.globalCompositeOperation = 'source-atop';
     blit(g, ring, b);
@@ -334,12 +342,19 @@ export class Paper {
     f.x = Math.min(f.x, b.x); f.y = Math.min(f.y, b.y); f.w = x1 - f.x; f.h = y1 - f.y;
   }
 
+  /**
+   * The torn outline. The wobble is a function of arc length (not of point index), so sampling finer
+   * in close-ups adds detail without changing the shape, and a zoom never makes the edge crawl.
+   */
   private tornPath(poly: V[], seed: number, tear: number): Path2D {
-    const pts = resample(poly, 5);
+    const m = this.ctx.getTransform(), scale = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1;
+    const pts = resample(poly, Math.min(5, Math.max(0.8, 4 / scale)));
     const z = this.boil * 41.3;
     const path = new Path2D();
+    let s = 0;
     pts.forEach((p, i) => {
-      const u = i * 0.21 + z;
+      if (i) s += Math.hypot(p.x - pts[i - 1].x, p.y - pts[i - 1].y);
+      const u = s * 0.042 + z;
       const x = p.x + (noise1(u, seed) + noise1(u * 4.1, seed + 3) * 0.35) * tear;
       const y = p.y + (noise1(u, seed + 7) + noise1(u * 4.1, seed + 9) * 0.35) * tear;
       if (i) path.lineTo(x, y); else path.moveTo(x, y);

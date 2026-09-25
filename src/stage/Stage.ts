@@ -10,6 +10,12 @@ export interface StageOptions {
   substeps?: number;
   /** Seconds simulated before frame 0 so strands, hair and cloth settle into place. */
   preroll?: number;
+  /**
+   * Playback rate at scene time `t`: 1 is real time, 0.3 is slow motion (the scene advances 0.3 s
+   * per second of video). The simulation keeps its fixed step, so slow motion is simply fewer steps
+   * per frame; `duration` stays in scene seconds and the video gets longer. See `speedRamp`.
+   */
+  rate?: (t: number) => number;
 }
 
 /**
@@ -32,6 +38,8 @@ export abstract class Stage {
   private steps = 0;
   private readonly prerollSteps: number;
   private started = false;
+  /** Scene time shown by each video frame. */
+  private readonly frameTimes: number[] = [];
 
   constructor(readonly canvas: HTMLCanvasElement, o: StageOptions) {
     this.width = o.width ?? 1920;
@@ -44,9 +52,11 @@ export abstract class Stage {
     canvas.height = this.height;
     this.ctx = canvas.getContext('2d')!;
     this.paper = new Paper(this.ctx);
+    const rate = o.rate ?? (() => 1);
+    for (let t = 0; t < this.duration - 1e-9; t += Math.max(0.02, rate(t)) / this.fps) this.frameTimes.push(t);
   }
 
-  get frames(): number { return Math.round(this.fps * this.duration); }
+  get frames(): number { return this.frameTimes.length; }
 
   private get clock(): number { return (this.steps - this.prerollSteps) * this.dt; }
 
@@ -62,7 +72,7 @@ export abstract class Stage {
    */
   renderFrame(n: number): void {
     if (!this.started) this.begin();
-    const target = n / this.fps;
+    const target = this.frameTimes[Math.min(n, this.frameTimes.length - 1)];
     if (target < this.clock - this.dt * 1.5) throw new Error(`Frames must be rendered in order: asked for ${n} at t=${this.clock.toFixed(3)}`);
     while (this.clock < target - 1e-9) this.tick();
     this.paper.setFrame(n);

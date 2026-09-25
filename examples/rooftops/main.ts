@@ -3,12 +3,12 @@
  * startles a pigeon and sits to watch the moon. Content only: city, cast and the cat's beats.
  */
 import {
-  type V, Beats, Camera, Stage, blink, caption, circlePoly, drawProps, envelope, fillGradient, flora, lerp, noise1,
+  type V, Beats, Camera, Stage, blink, building, caption, circlePoly, drawProps, envelope, fillGradient, flora, lerp, noise1,
   ramp, rng, scatter, vignette,
 } from '../../src';
 import { CAT_REST, type CatLook, Cat } from './Cat';
 import { type PigeonLook, Pigeon } from './Pigeon';
-import { type HousePalette, type HouseSpec, building, chimneyTop, drawHouse, roofSurface } from './houses';
+import { type HousePalette, type HouseSpec, chimneyTop, drawHouse, roofSurface } from './houses';
 
 const W = 1920, H = 1080;
 

@@ -1,5 +1,5 @@
-/** Integer hash to [0, 1). */
-function hash(n: number): number {
+/** Integer hash to [0, 1): stateless randomness for things that must not depend on history (rain drops). */
+export function hash(n: number): number {
   let x = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
   x ^= x >>> 13;
   x = Math.imul(x, 0xc2b2ae35);

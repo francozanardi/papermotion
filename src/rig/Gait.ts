@@ -25,6 +25,10 @@ export interface GaitConfig {
   footReach: number;
   lean: number;
   stance: number;
+  /** Arm swing amplitude at a full run (rad). Default 1. */
+  armSwing?: number;
+  /** Elbow bend at a full run (rad). Default 0.9. */
+  elbow?: number;
 }
 
 export interface GaitInput {
@@ -37,6 +41,11 @@ export interface GaitInput {
   ground: (localX: number) => number;
   /** Per-leg shift of the foot target (local px), e.g. hind paws forward when sitting, feet apart when bracing. */
   footOffset?: readonly V[];
+  /**
+   * 0…1: favour the first leg (a hurt foot). Less time is spent on it, the hip drops while it bears
+   * weight and the stride shortens on its side.
+   */
+  limp?: number;
 }
 
 /**
@@ -58,10 +67,13 @@ export class Gait {
   update(skel: Skeleton, input: GaitInput, dt: number): void {
     const c = this.cfg;
     this.clock += dt;
-    this.phase += ((input.speed * dt) / c.step) * Math.PI;
-    const run = this.run.step({ x: clamp(input.speed / c.runSpeed), y: 0 }, dt).x;
+    const limp = input.limp ?? 0;
+    // Hurry through the stance of the first leg: the phase runs faster while it is on the ground.
+    const onHurt = Math.cos(this.phase) < 0 ? 1 : 0;
+    this.phase += ((input.speed * dt) / c.step) * Math.PI * (1 + limp * (onHurt ? 0.7 : -0.3));
+    const run = this.run.step({ x: clamp(Math.abs(input.speed) / c.runSpeed), y: 0 }, dt).x;
 
-    const bob = -(1 - Math.abs(Math.cos(this.phase))) * c.bounce * run;
+    const bob = -(1 - Math.abs(Math.cos(this.phase))) * c.bounce * run + limp * 16 * Math.max(0, -Math.cos(this.phase)) * Math.min(1, run * 3);
     const breathe = Math.sin(this.clock * 2.4) * 2 * (1 - run);
     skel.rootOffset = { x: 0, y: -c.hipHeight + bob + breathe + (input.crouch ?? 0) };
     skel.set(c.pelvis, (c.pelvisAngle ?? -Math.PI / 2) + c.lean * run + (input.lean ?? 0));
@@ -70,15 +82,16 @@ export class Gait {
       const ph = this.phase + (c.phases?.[k] ?? (k % 2) * 0.5) * Math.PI * 2;
       const hip = skel.get(thigh).start.x;
       const shift = input.footOffset?.[k];
-      const x = hip + Math.sin(ph) * c.footReach * run + (k % 2 ? -c.stance : c.stance) * (1 - run) + (shift?.x ?? 0);
+      const reach = c.footReach * (k === 0 ? 1 - limp * 0.35 : 1);
+      const x = hip + Math.sin(ph) * reach * run + (k % 2 ? -c.stance : c.stance) * (1 - run) + (shift?.x ?? 0);
       const foot: V = { x, y: input.ground(x) - Math.max(0, Math.cos(ph)) * c.footLift * run + (shift?.y ?? 0) };
       skel.reach(thigh, shin, foot, c.bends?.[k] ?? -1);
     });
 
     c.arms?.forEach(([upper, fore], k) => {
-      const swing = Math.sin(this.phase + (k ? 0 : Math.PI)) * 1.0 * run + 0.1;
+      const swing = Math.sin(this.phase + (k ? 0 : Math.PI)) * (c.armSwing ?? 1) * run + 0.1;
       skel.setWorld(upper, Math.PI / 2 - swing);
-      skel.set(fore, -0.25 - 0.9 * run);
+      skel.set(fore, -0.25 - (c.elbow ?? 0.9) * run);
     });
   }
 }

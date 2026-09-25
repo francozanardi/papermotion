@@ -4,7 +4,8 @@ export * from './core/random';
 export { Spring } from './core/Spring';
 
 // Physics: points and links, rigid plates, strings, soft bodies, platforms
-export { World, type Pt, type PointOpts, type Collider } from './physics/World';
+export { World, type Pt, type PointOpts, type Collider, type Link } from './physics/World';
+export { Spool, type SpoolOpts } from './physics/Spool';
 export { Plate, type AerofoilSpec } from './physics/Plate';
 export { rope } from './physics/rope';
 export { SoftBody, type SoftOpts } from './physics/SoftBody';
@@ -28,19 +29,26 @@ export { Paper, type PieceOpts, type SheetOpts, type Light } from './paper/Paper
 export { circlePoly, tubePoly } from './paper/geometry';
 export { drawShafts, type ShaftSpec } from './paper/shafts';
 
+// Weather and effects
+export { drawRain, drawRipples, drawDrips, type RainSpec, type SplashSpec, type RippleSpec, type DripSpec } from './weather/rain';
+export { Particles, type Particle, type ParticleOpts, type Burst } from './fx/Particles';
+
 // Scenery
 export { type RidgeSpec, ridgeHeight, drawRidge } from './scenery/ridge';
 export { flora, scallop } from './scenery/flora';
+export { building } from './scenery/building';
 export { type Prop, type PropMaker, type PropSet, type ScatterSpec, scatter, drawProps } from './scenery/scatter';
 
 // Camera
-export { Camera, type CameraOpts } from './camera/Camera';
+export { Camera, type CameraOpts, type Framing, type View } from './camera/Camera';
 
 // Direction: choreography and time-shaped intents
 export { Beats, type BeatSpec, type BeatContext, type BeatLog } from './direction/Beats';
-export { ramp, envelope, blink, keys } from './direction/timeline';
+export { ramp, envelope, blink, keys, speedRamp } from './direction/timeline';
+export { Edit, type ShotSpec } from './direction/Edit';
 
-// Stage: scenes, playback, overlays
+// Stage: scenes, playback, overlays, film finishing
 export { Stage, type StageOptions } from './stage/Stage';
 export { mount, type MountOptions, type StageHooks } from './stage/player';
 export { fillGradient, vignette, caption, type CaptionOpts } from './stage/overlay';
+export { grade, grain, wash, letterbox } from './stage/grade';

@@ -31,3 +31,12 @@ export function keys(t: number, points: readonly [number, number][], ease: (u: n
   }
   return points[points.length - 1][1];
 }
+
+/**
+ * A playback rate for `StageOptions.rate`: slow motion over scene-time windows, easing in and out
+ * over `ease` seconds at each end so the change of speed is felt, not seen as a jump.
+ * @example rate: speedRamp([{ from: 4.9, to: 5.5, rate: 0.35 }])
+ */
+export function speedRamp(windows: readonly { from: number; to: number; rate: number }[], ease = 0.15): (t: number) => number {
+  return t => windows.reduce((r, w) => Math.min(r, 1 - (1 - w.rate) * envelope(t, w.from - ease, w.from, w.to, w.to + ease)), 1);
+}

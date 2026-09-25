@@ -173,3 +173,85 @@ Read this before making a scene. Each note is a mistake we made, or a fix that w
   10 s of video. That is fine offline. If it matters, restrict the passes to a bounding box (sheets already do)
   and avoid sheets on tiny background props.
 - Drop shadows with blur on every small piece add up. Background props can use smaller shadows.
+
+## 9. Multi-shot stories (`rain`)
+
+A 20-second story with eight shots, two characters, a vehicle and weather. It works as a whole, but it is
+**not polished** — see "Still weak" below. What we learned:
+
+### Edit and camera
+
+- **One continuous simulation, many shots.** The story never stops. `Edit` only moves the camera. It is a
+  shot list with the same `next` and `after` rules as `Beats`.
+- **Cut on action.** Cut when the event happens (`next: () => her.landed && 'mud'`), not at a guessed time.
+  A shot can also wait for a story beat (`herBeats.reached('shout')`).
+- **Stage key moments inside the shot.** In the traveller's close-up she was already in frame before they
+  turned. Check with the probe which beat each character is on at every cut.
+- **Slow motion means fewer simulation steps per frame** (`StageOptions.rate`, `speedRamp`). Use it on the
+  impact moments: the stumble and the leap into someone's arms. It also makes anything floating hang
+  longer in the air (see the scarf below).
+
+### Close-ups
+
+- **World-unit line weights grow with zoom.** At 4× zoom a 3 px rim light turned into a white stripe, and
+  the barbed wire into bars. Scale rim, shade and thin lines by about `zoom^-0.55` (`Person.lens`,
+  `drawFence(…, lens)`). Rain streaks need the same treatment: width × `zoom^-0.65`.
+- **Torn edges are sampled by scale.** The engine does this now. Before, close-ups showed facets.
+- **The face must stay readable.** Wet strands drawn across the eye read as scribbles. Rain highlights
+  read as freckles. Round mud spots read as clown make-up or a dalmatian. What worked instead:
+  - one thin strand at the temple;
+  - two highlights;
+  - mud as translucent smears along the direction she slid (`paper.layer` inside `paper.inside`).
+- **Wind direction is art direction.** A tailwind blew her hair over her face. A headwind is more dramatic
+  and keeps the face clear.
+- **Draw order is part of a pose.** Lying down, the near-arm sheet cut across the hair. When she lies
+  down, the hair moves to its own sheet on top of the arm. When she runs, the near leg goes *before*
+  the coat, so the skirt falls over the thigh.
+
+### Physics of cloth and hair in a fall
+
+- **A style in the head frame points the wrong way when the head turns.** Hair combed "back" stands up
+  when she lies face down. Lower `Hair.strength` while lying.
+- **Strands flung in a fall can hang in the air for seconds.** That happens with high air drag (0.1 per
+  step caps the fall at about 120 px/s), and slow motion stretches it further. Wet wool and coats need low
+  drag, full gravity and `Strand.flex` near 0 on the ground.
+- **Probe positions before guessing.** A white shape standing up after the fall looked like a leg, an
+  arm or a coat flap. The probe showed which it was in one run.
+- **An IK target too close to the shoulder folds the arm with the elbow up** (it looked like a horn).
+  Keep hand targets at a comfortable reach.
+
+### Scene mechanics
+
+- **`Camera.layer` inside `paper.layer` must get the `Paper`, not the main context.** Otherwise the
+  camera transform never reaches the offscreen canvas, and the whole background stays frozen. We didn't
+  notice for several iterations, because single frames looked fine. Compare two distant frames of the
+  same layer to check parallax.
+- **Infinity arithmetic bites.** `hitAt = -Infinity`, so `hitAt + 2.1 < t` is always true, and the bus left
+  as soon as it stopped. Guard with `Number.isFinite`.
+- **Speed intents are reset every step.** Read a collision's velocity at the moment of contact
+  (`Person.impact`), not afterwards.
+- **Night scenes: turn down the paper cut edge on far layers** (`paper.edgeColor`). Otherwise dark
+  scenery turns into line art.
+- **Show the goal from the first shot** (a glow on the horizon). It turns "running" into "running toward
+  something".
+- **Don't edit sources while a render runs.** The render server no longer watches files, but reading a
+  half-edited scene is still a bad idea.
+- **Keep the story's props readable, or leave them out.** The lost shoe and the scarf unravelling into a
+  yarn trail were meant as metaphors ("losing part of yourself"). The user found them confusing, so we
+  removed them. One clear action beats a subtle symbol at this scale.
+
+### Still weak (next work)
+
+- **Hair.** Locks are stiff ribbons. Long wet hair needs to clump, cling and move as a mass.
+- **The embrace.** Two independent rigs overlap, and nothing holds them in contact. The hug needs real
+  two-body contact: shared anchors, arms that wrap around a partner's silhouette, heads that avoid each
+  other.
+- **The run cycle.** The procedural gait reads as a stiff trot at full speed. It needs:
+  - push-off and knee drive;
+  - a flight phase;
+  - arms that pump from the shoulder;
+  - a torso twist.
+- **Held props.** The umbrella looked glued above the hand. Held props need a grip: fingers wrapped
+  around the handle, with the prop's axis following the forearm.
+- **Transitions between modes** (walk → tumble → ground → walk, leap → held) pop in places. Blend
+  poses across mode changes instead of switching targets.
