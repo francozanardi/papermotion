@@ -7,7 +7,7 @@ performance — on top of a generic engine, so a 10-second short is a few hundre
 
 ```bash
 pnpm install
-pnpm render sea     # render offline → out/sea.mp4   (kite | autumn | sea | rooftops | all)
+pnpm render sea     # render offline → out/sea.mp4   (kite | sea | rooftops | rain | demo | all)
 pnpm dev            # http://localhost:5299/?example=sea plays out/sea.mp4
                     # add &live to run the scene in the browser instead (quick iteration, may stutter)
 pnpm grab sea 1 4 7 # frames + probes at those seconds → out/grab/ (add --probe for numbers only)
@@ -55,7 +55,7 @@ class Marea extends Stage {
 }
 ```
 
-See `examples/` for complete shorts: `kite` (time-shaped intents), `autumn`, `sea` and `rooftops` (beats).
+See `examples/` for complete shorts: `kite` (time-shaped intents), `sea` and `rooftops` (beats), `rain` (a multi-shot edit) and `demo` (acts and transitions).
 
 ## Rendering and the capture contract
 

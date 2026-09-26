@@ -3,7 +3,7 @@
  * Content only: landscape, cast and time-shaped intents. Behaviour comes from the engine.
  */
 import {
-  type RidgeSpec, Camera, Stage, blink, caption, circlePoly, clamp, drawProps, drawRidge, envelope, fbm1,
+  type RidgeSpec, Camera, Stage, blink, circlePoly, clamp, drawProps, drawRidge, envelope, fbm1,
   fillGradient, flora, keys, noise1, ramp, ridgeHeight, rng, scatter, smoothstep, vignette,
 } from '../../src';
 import { Child } from '../cast/Child';
@@ -142,7 +142,6 @@ export class KiteScene extends Stage {
       this.kid.draw(paper);
     });
     cam.layer(ctx, 1.6, v => drawProps(paper, LAYERS.foreground, v.from, v.to, wind, t));
-    caption(ctx, 'A veces, cae.', { alpha: ramp(t, 5.6, 6.3), y: 180 });
     vignette(ctx, [10, 6, 25], 0.45);
   }
 

@@ -4,7 +4,7 @@
  */
 import {
   type Collider, type Pt, type RidgeSpec, type ShaftSpec, type SwimSpec, type V, Beats, Camera, School, Stage, Swimmer,
-  caption, circlePoly, drawProps, drawRidge, drawShafts, fbm1, fillGradient, flora, lerp, noise1, ramp, ridgeHeight, rng,
+  circlePoly, drawProps, drawRidge, drawShafts, fbm1, fillGradient, flora, lerp, noise1, ramp, ridgeHeight, rng,
   rot, scatter, smoothstep, steer, vignette,
 } from '../../src';
 import { BELL, type JellyLook, Jelly } from '../cast/Jelly';
@@ -225,7 +225,6 @@ export class SeaScene extends Stage {
     });
     cam.layer(ctx, 1.12, v => drawShafts(paper, NEAR_SHAFTS, v.from, v.to, t));
     cam.layer(ctx, 1.5, v => drawProps(paper, LAYERS.fore, v.from, v.to, flowX, t));
-    caption(ctx, 'Cada quien, a su ritmo.', { alpha: ramp(t, 8.3, 9.0), color: '#f3fbf7', glow: 'rgba(8, 34, 48, 0.6)' });
     vignette(ctx, [6, 26, 40], 0.5);
   }
 

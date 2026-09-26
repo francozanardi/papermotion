@@ -3,7 +3,7 @@
  * and piped to ffmpeg, so the result is smooth no matter how heavy a frame is.
  *
  *   pnpm render sea            → out/sea.mp4
- *   pnpm render kite autumn
+ *   pnpm render kite sea
  *   pnpm render all
  *
  * Needs ffmpeg and a Chromium (`npx playwright install chromium`, or set CHROMIUM_PATH).

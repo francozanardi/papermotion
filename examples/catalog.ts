@@ -15,10 +15,6 @@ export const EXAMPLES: Record<string, () => Promise<MakeStage>> = {
       return new KiteScene(canvas, lab ? { bone: lab, zoom: 3 } : undefined);
     };
   },
-  autumn: async () => {
-    const { AutumnScene } = await import('./autumn/main');
-    return canvas => new AutumnScene(canvas);
-  },
   rooftops: async () => {
     const { RooftopsScene } = await import('./rooftops/main');
     return canvas => new RooftopsScene(canvas);

@@ -3,7 +3,7 @@
  * startles a pigeon and sits to watch the moon. Content only: city, cast and the cat's beats.
  */
 import {
-  type V, Beats, Camera, Stage, blink, building, caption, circlePoly, drawProps, envelope, fillGradient, flora, lerp, noise1,
+  type V, Beats, Camera, Stage, blink, building, circlePoly, drawProps, envelope, fillGradient, flora, lerp, noise1,
   ramp, rng, scatter, vignette,
 } from '../../src';
 import { CAT_REST, type CatLook, Cat } from './Cat';
@@ -163,7 +163,6 @@ export class RooftopsScene extends Stage {
       this.pigeon.draw(paper, t);
       this.cat.draw(paper);
     });
-    caption(ctx, 'Hay saltos que se piensan.', { alpha: ramp(t, 8.3, 9.0), color: '#f3eede', glow: 'rgba(6, 8, 30, 0.7)' });
     vignette(ctx, [4, 6, 22], 0.55);
   }
 

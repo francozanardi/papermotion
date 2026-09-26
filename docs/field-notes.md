@@ -1,6 +1,6 @@
 # Field notes: what we learned making shorts with papermotion
 
-Practical lessons from building the examples (`kite`, `autumn`, `sea`, `rooftops`) and fixing what went wrong.
+Practical lessons from building the examples (`kite`, `sea`, `rooftops`, `rain`, `demo`; an early `autumn` short was removed) and fixing what went wrong.
 Read this before making a scene. Each note is a mistake we made, or a fix that worked, and why.
 
 ---
@@ -39,7 +39,7 @@ Read this before making a scene. Each note is a mistake we made, or a fix that w
   - The pigeon flies with `Swimmer` (steering, a paper turn when it reverses, and a "tail beat" that drives the
     wings).
 - **Refactor, then check the old examples still give the same numbers.** After generalizing `Gait` and `Hair`,
-  the kite and autumn probes had to match the earlier values exactly. They did.
+  the kite and (since removed) autumn probes had to match the earlier values exactly. They did.
 
 ## 3. Physics that reads right, not realistic
 
