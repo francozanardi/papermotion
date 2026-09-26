@@ -283,3 +283,22 @@ Clawd, the Claude Code critter, walks through five acts. What we learned:
   - light shafts under water.
 - **Originality.** The user found reusing earlier examples' cast (jellyfish, kelp, houses) a missed
   chance. New pieces are expected in each short.
+
+## 11. A snowball story (`snow`)
+
+Clawd, a snowball that grows until it escapes down a hill, and a tree that drops its snow. What we learned:
+
+- **"Not happened yet" bit us twice more.** `t - flakeGone` with `flakeGone = -Infinity` is `Infinity`, so
+  the flake was never drawn. `t > crashAt + 1.5` with `crashAt = -Infinity` froze the ball from the start.
+  Guard every such time with `Number.isFinite` before doing arithmetic on it.
+- **Clear one-shot objects when they fire.** The falling clump stayed alive after it buried Clawd, and it
+  buried him again as soon as he popped out. Set it to null in the step that it hits.
+- **Grab times are video seconds.** With a `speedRamp`, scene time and video time drift apart after the
+  slow-motion window. Read `t` in the probe, not the grab time.
+- **Push a rolling body by contact, not by force.** A spring force between Clawd's arm and the ball
+  lagged and jittered. Resolving the overlap (move the ball out, match the pusher's speed) reads as a
+  real push. Once the slope takes over, the gap opens by itself, and that gap is the cue for the next beat.
+- **A payoff needs a readable shape.** Clawd on top of the ball didn't read as a snowman until two twigs
+  from the crash landed in the ball as arms.
+- **Engine additions:** `Roller` (a ball that rolls on a ground line, grows as it gathers material and
+  stops at walls), `Tracks` (footprints and furrows), and `snowflakes`/`drawSnow` (stateless snowfall).

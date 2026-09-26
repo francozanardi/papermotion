@@ -3,13 +3,14 @@ export * from './core/math';
 export * from './core/random';
 export { Spring } from './core/Spring';
 
-// Physics: points and links, rigid plates, strings, soft bodies, platforms
+// Physics: points and links, rigid plates, strings, soft bodies, platforms, rolling balls
 export { World, type Pt, type PointOpts, type Collider, type Link } from './physics/World';
 export { Spool, type SpoolOpts } from './physics/Spool';
 export { Plate, type AerofoilSpec } from './physics/Plate';
 export { rope } from './physics/rope';
 export { SoftBody, type SoftOpts } from './physics/SoftBody';
 export { Surface } from './physics/Surface';
+export { Roller, type RollerOpts } from './physics/Roller';
 
 // Rigs: bones, legged gait, strands, hair
 export { Bone, type BoneDef, type BoneSpring } from './rig/Bone';
@@ -33,6 +34,8 @@ export { drawShafts, type ShaftSpec } from './paper/shafts';
 // Weather and effects
 export { drawRain, drawRipples, drawDrips, type RainSpec, type SplashSpec, type RippleSpec, type DripSpec } from './weather/rain';
 export { Particles, type Particle, type ParticleOpts, type Burst } from './fx/Particles';
+export { drawSnow, snowflakes, type SnowSpec, type Flake } from './weather/snow';
+export { Tracks, type Mark, type TracksOpts } from './fx/Tracks';
 
 // Scenery
 export { type RidgeSpec, ridgeHeight, drawRidge } from './scenery/ridge';
