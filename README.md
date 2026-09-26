@@ -11,23 +11,52 @@ assets.
 > results. Expect rough edges, APIs that change between versions, and code that no one has read line by
 > line.
 
-<!--
-  Gallery: upload each MP4/GIF to GitHub (drag it into an issue or PR comment to get a
-  https://github.com/user-attachments/... URL) and paste it where the placeholders are.
--->
-
 ## Gallery
 
-| | Film | Made with |
-| --- | --- | --- |
-| <!-- snow video --> *(video coming soon)* | **First snow** (`snow`) — Clawd rolls a snowball that grows until it escapes down the hill, gets buried by a tree, and ends up as the head of a snowman. With sound. | Claude Opus 5.5 (medium effort) |
-| <!-- demo video --> *(video coming soon)* | **A walk through paper** (`demo`) — Clawd hops across the title, blows a dandelion, dives into a sea, bounces off a jellyfish and walks a string of lights over the rooftops. With sound. | Claude Opus 5.5 (medium effort) |
-| <!-- rooftops video --> *(video coming soon)* | **Tejados** (`rooftops`) — a cat walks a moonlit ridge, leaps to the next roof and startles a pigeon. | Claude Opus 5.5 (medium effort) |
-| <!-- sea video --> *(video coming soon)* | **Marea** (`sea`) — a moon jelly drifts toward the light; a curious fish circles it and leaves with a school. | Claude Opus 5.5 (medium effort) |
-| <!-- kite video --> *(video coming soon)* | **A veces, cae** (`kite`) — a kid runs with a kite at dusk; the wind drops and the kite falls. | Claude Opus 5.5 (medium effort) |
-| <!-- rain video --> *(video coming soon)* | **Lluvia** (`rain`) — a multi-shot story: a woman runs through a storm toward a bus stop. | Claude Opus 5.5 (medium effort) |
-| <!-- light video --> *(video coming soon)* | **Where Light Sleeps** (`light`) — a copper moth wakes a seed in an abandoned observatory. | GPT 6 Astra (light effort) |
-| <!-- embers video --> *(video coming soon)* | **Embers** (`embers`) — an elder and a child keep a fire alive across eras. | GPT 6 Astra (light effort) |
+### First snow (`snow`)
+
+Clawd rolls a snowball that grows until it escapes down the hill, gets buried by a tree, and ends up as
+the head of a snowman. With sound. *Made with Claude Opus 5.5 (medium effort).*
+
+https://github.com/user-attachments/assets/4e585b3d-4214-43ab-9fe0-a7b1aab6b924
+
+### A walk through paper (`demo`)
+
+Clawd blows a dandelion in a meadow, dives into a pond that turns out to be a sea, bounces off a
+jellyfish and walks a string of lights over the rooftops. With sound. *Made with Claude Opus 5.5 (medium
+effort).*
+
+https://github.com/user-attachments/assets/0873431e-e55c-4cfe-9abd-1ab61f62b933
+
+### Tejados (`rooftops`)
+
+A cat walks a moonlit ridge, leaps to the next roof and startles a pigeon. *Made with Claude Opus 5.5
+(medium effort).*
+
+https://github.com/user-attachments/assets/4064b7b3-0aa6-441d-850a-623b773f4aae
+
+### Marea (`sea`)
+
+A moon jelly drifts toward the light; a curious fish circles it and leaves with a school. *Made with
+Claude Opus 5.5 (medium effort).*
+
+https://github.com/user-attachments/assets/d9b56932-19fc-4571-a22c-6239ee6966a2
+
+### Where Light Sleeps (`light`)
+
+A copper moth wakes a seed in an abandoned observatory. *Made with GPT 6 Astra (light effort).*
+
+https://github.com/user-attachments/assets/08aa7208-1fcf-4f1d-ac74-28e54867f9f8
+
+### Embers (`embers`)
+
+An elder and a child keep a fire alive across eras. *Made with GPT 6 Astra (light effort).*
+
+https://github.com/user-attachments/assets/7212194f-1166-49d9-8cb8-fa7a240a1b3e
+
+`examples/` also has **A veces, cae** (`kite`), a kid whose kite falls when the wind drops; **Lluvia**
+(`rain`), a woman running through a storm toward a bus stop; and **Manos** (`hands`), hands on a rock
+wall under a turning sky.
 
 Most films were close to one-shot: the agent got a one-line brief and full creative freedom, and the
 human asked for a few small corrections (a sound too loud, a timing, a framing). They are in
