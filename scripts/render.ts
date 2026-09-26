@@ -9,25 +9,13 @@
  * Needs ffmpeg and a Chromium (`npx playwright install chromium`, or set CHROMIUM_PATH).
  */
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium, type Page } from 'playwright-core';
-import { createServer } from 'vite';
+import type { Page } from 'playwright-core';
 import { EXAMPLES } from '../examples/catalog.ts';
+import { load, open } from './browser.ts';
 
 const OUT = 'out';
-
-function findChromium(): string {
-  if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
-  const cache = join(homedir(), '.cache', 'ms-playwright');
-  const builds = existsSync(cache) ? readdirSync(cache).filter(d => d.startsWith('chromium-')).sort().reverse() : [];
-  for (const b of builds) {
-    const bin = join(cache, b, 'chrome-linux64', 'chrome');
-    if (existsSync(bin)) return bin;
-  }
-  throw new Error('No Chromium found: run `npx playwright install chromium` or set CHROMIUM_PATH.');
-}
 
 /** H.264 settings for the best encoder this ffmpeg has. */
 function encoder(): string[] {
@@ -39,12 +27,7 @@ function encoder(): string[] {
 
 async function render(page: Page, base: string, name: string, codec: string[]): Promise<void> {
   const errors: string[] = [];
-  page.removeAllListeners('pageerror');
-  page.on('pageerror', e => errors.push(e.message));
-  await page.goto(`${base}/?example=${name}&headless`);
-  await page.waitForFunction(() => (globalThis as { ready?: boolean }).ready || document.querySelector('p'), null, { timeout: 60_000 });
-  if (errors.length) throw new Error(`${name}: ${errors.join('; ')}`);
-  const { fps, frames } = await page.evaluate(() => (globalThis as unknown as { meta: { fps: number; frames: number } }).meta);
+  const { fps, frames } = await load(page, base, name, errors);
 
   const file = join(OUT, `${name}.mp4`);
   const ffmpeg = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
@@ -70,15 +53,9 @@ if (unknown.length) throw new Error(`Unknown example(s): ${unknown.join(', ')}. 
 
 mkdirSync(OUT, { recursive: true });
 const codec = encoder();
-// No HMR and no file watching: editing sources while a render runs must not reload the page mid-video.
-const server = await createServer({ server: { port: 0, hmr: false, watch: null }, logLevel: 'error' });
-await server.listen();
-const base = server.resolvedUrls!.local[0].replace(/\/$/, '');
-const browser = await chromium.launch({ executablePath: findChromium() });
+const session = await open();
 try {
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
-  for (const name of names) await render(page, base, name, codec);
+  for (const name of names) await render(session.page, session.base, name, codec);
 } finally {
-  await browser.close();
-  await server.close();
+  await session.close();
 }

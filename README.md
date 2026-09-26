@@ -10,9 +10,14 @@ pnpm install
 pnpm render sea     # render offline → out/sea.mp4   (kite | autumn | sea | rooftops | all)
 pnpm dev            # http://localhost:5299/?example=sea plays out/sea.mp4
                     # add &live to run the scene in the browser instead (quick iteration, may stutter)
+pnpm grab sea 1 4 7 # frames + probes at those seconds → out/grab/ (add --probe for numbers only)
+pnpm sheet sea      # contact sheet of the rendered video
 pnpm test
 pnpm typecheck
 ```
+
+Agents making films with the engine should load the skill in `.claude/skills/papermotion/`
+(workflow, API reference, art direction, pitfalls).
 
 Videos are always rendered offline, frame by frame, so they come out smooth however heavy a frame is.
 The live view is only a sketchpad.

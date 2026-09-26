@@ -9,7 +9,9 @@
     "render": "node scripts/render.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "grab": "node scripts/grab.ts",
+    "sheet": "node scripts/sheet.ts"
   },
   "license": "MIT",
   "devDependencies": {

@@ -1,7 +1,8 @@
 # papermotion — guide for agents working on this codebase
 
 Read `README.md` first for what each module does, and `docs/field-notes.md` before making a scene:
-it collects the mistakes we made and the fixes that worked.
+it collects the mistakes we made and the fixes that worked. To make a short, use the skill in
+`.claude/skills/papermotion/` (workflow, API reference, art direction, pitfalls, inspection).
 
 ## Principles
 
@@ -31,6 +32,8 @@ it collects the mistakes we made and the fixes that worked.
 ```bash
 pnpm render sea   # offline render → out/sea.mp4 (or: all)
 pnpm dev          # vite on :5299 — /?example=sea plays the render, &live runs it in the browser
+pnpm grab sea 1 4 7 [--probe]   # frames and/or probes at those seconds → out/grab/
+pnpm sheet sea                  # contact sheet of out/sea.mp4
 pnpm test
 pnpm typecheck
 ```
