@@ -14,7 +14,7 @@ if (!EXAMPLES[name]) {
   showMessage(`Unknown example "${name}". Try: ${Object.keys(EXAMPLES).join(', ')}.`);
 } else if (params.has('live') || params.has('headless')) {
   const make = await EXAMPLES[name]();
-  await document.fonts.load('300 64px Montserrat');
+  await Promise.all(['300 64px Montserrat', '800 64px Montserrat'].map(f => document.fonts.load(f)));
   mount(canvas, c => make(c, params), { headless: params.has('headless') });
 } else {
   playVideo(`/out/${name}.mp4`);

@@ -7,9 +7,9 @@ import {
   caption, circlePoly, drawProps, drawRidge, drawShafts, fbm1, fillGradient, flora, lerp, noise1, ramp, ridgeHeight, rng,
   rot, scatter, smoothstep, steer, vignette,
 } from '../../src';
-import { BELL, type JellyLook, Jelly } from './Jelly';
-import { type KelpLook, Kelp } from './Kelp';
-import { type FishLook, drawFish } from './fish';
+import { BELL, type JellyLook, Jelly } from '../cast/Jelly';
+import { type KelpLook, Kelp } from '../cast/Kelp';
+import { type FishLook, drawFish } from '../cast/fish';
 
 const W = 1920, H = 1080;
 

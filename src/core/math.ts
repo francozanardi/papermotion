@@ -22,6 +22,8 @@ export const smoothstep = (e0: number, e1: number, x: number): number => {
   return t * t * (3 - 2 * t);
 };
 export const easeInOut = (t: number): number => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+/** Ease out past the target and settle back (motion-design "back" ease); `t` is clamped to 0…1. */
+export const overshoot = (t: number, s = 1.7): number => { const u = clamp(t) - 1; return 1 + u * u * ((s + 1) * u + s); };
 
 /**
  * Two-bone IK. Returns the middle joint. `bend` (+1/-1) picks the side.

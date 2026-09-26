@@ -8,7 +8,7 @@ import {
 } from '../../src';
 import { CAT_REST, type CatLook, Cat } from './Cat';
 import { type PigeonLook, Pigeon } from './Pigeon';
-import { type HousePalette, type HouseSpec, chimneyTop, drawHouse, roofSurface } from './houses';
+import { type HousePalette, type HouseSpec, chimneyTop, drawHouse, roofSurface } from '../sets/houses';
 
 const W = 1920, H = 1080;
 

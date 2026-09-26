@@ -27,6 +27,7 @@ export { Leap } from './motion/Leap';
 // Paper rendering
 export { Paper, type PieceOpts, type SheetOpts, type Light } from './paper/Paper';
 export { circlePoly, tubePoly } from './paper/geometry';
+export { layoutLetters, textWidth, type Letter } from './paper/type';
 export { drawShafts, type ShaftSpec } from './paper/shafts';
 
 // Weather and effects
@@ -52,3 +53,4 @@ export { Stage, type StageOptions } from './stage/Stage';
 export { mount, type MountOptions, type StageHooks } from './stage/player';
 export { fillGradient, vignette, caption, type CaptionOpts } from './stage/overlay';
 export { grade, grain, wash, letterbox } from './stage/grade';
+export { tearWipe, irisWipe, type WipeOpts } from './stage/transition';

@@ -221,6 +221,28 @@ export class Paper {
     this.piece(tubePoly(smooth(pts, 6), width), fill, o);
   }
 
+  /**
+   * Text cut out of paper. Inside a `sheet` it merges like any other piece (and gets the sheet's shadow,
+   * rim, edge and fibers); on its own it becomes a sheet of its own. `at` is the baseline start (or
+   * center with `align: 'center'`); `angle` turns it around that point.
+   */
+  text(str: string, at: V, o: { font: string; color: string; align?: CanvasTextAlign; angle?: number; sheet?: SheetOpts }): void {
+    if (this.flatDepth === 0) { this.sheet(o.sheet ?? { shadow: 8 }, () => this.text(str, at, o)); return; }
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.font = o.font;
+    ctx.textAlign = o.align ?? 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.translate(at.x, at.y);
+    ctx.rotate(o.angle ?? 0);
+    ctx.fillStyle = o.color;
+    ctx.fillText(str, 0, 0);
+    const m = ctx.measureText(str);
+    const x0 = -m.actualBoundingBoxLeft, x1 = m.actualBoundingBoxRight;
+    this.trackPoly([{ x: x0, y: -m.actualBoundingBoxAscent }, { x: x1, y: -m.actualBoundingBoxAscent }, { x: x1, y: m.actualBoundingBoxDescent }, { x: x0, y: m.actualBoundingBoxDescent }], 4);
+    ctx.restore();
+  }
+
   /** Thin line without paper treatment (strings). */
   line(pts: V[], color: string, width: number): void {
     const ctx = this.ctx;

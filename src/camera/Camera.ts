@@ -87,6 +87,22 @@ export class Camera {
   }
 
   /**
+   * The x in the coordinates of a layer at `depth` that sits in front of world x (the action plane),
+   * for placing scenery. Far layers scroll slower, so their props live near `x * depth`, not near `x`.
+   */
+  toLayer(x: number, depth: number): number {
+    return this.o.width / 2 + (x - this.o.width / 2) * depth;
+  }
+
+  /** Where a point of the layer at `depth` lands on screen (ignoring the tiny handheld roll). */
+  toScreen(p: { x: number; y: number }, depth = 1): { x: number; y: number } {
+    const { width: W, height: H } = this.o, z = this.zoom ** depth;
+    const offset = (this.x - W / 2) * depth, lift = this.y * depth;
+    const dx = (p.x - W / 2 - offset) * z, dy = (p.y - H / 2 - lift) * z, c = Math.cos(this.roll), s = Math.sin(this.roll);
+    return { x: W / 2 + dx * c - dy * s, y: H / 2 + dx * s + dy * c };
+  }
+
+  /**
    * Draw inside the transform of a layer at `depth`. Pass the `Paper` (not a raw context) to draw into
    * whatever it is drawing on right now: inside `paper.layer` or `paper.sheet` that is an offscreen
    * canvas, and a transform set on the main context would not reach it.

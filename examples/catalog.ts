@@ -23,6 +23,10 @@ export const EXAMPLES: Record<string, () => Promise<MakeStage>> = {
     const { RooftopsScene } = await import('./rooftops/main');
     return canvas => new RooftopsScene(canvas);
   },
+  demo: async () => {
+    const { DemoScene } = await import('./demo/main');
+    return canvas => new DemoScene(canvas);
+  },
   rain: async () => {
     const { RainScene } = await import('./rain/main');
     return canvas => new RainScene(canvas);

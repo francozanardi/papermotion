@@ -255,3 +255,31 @@ A 20-second story with eight shots, two characters, a vehicle and weather. It wo
   around the handle, with the prop's axis following the forearm.
 - **Transitions between modes** (walk → tumble → ground → walk, leap → held) pop in places. Blend
   poses across mode changes instead of switching targets.
+
+## 10. A non-human tour (`demo`)
+
+Clawd, the Claude Code critter, walks through five acts. What we learned:
+
+- **Simple characters are an advantage.** A blocky body, four stubby legs, two arms and two eyes reads
+  well at any size and never breaks the way human rigs do. Give it life with:
+  - squash and stretch;
+  - arm springs that react to acceleration;
+  - eyes that slide toward where it goes, blink, and close into happy arcs.
+- **Several acts, one world.** Each act lives far away in x, with its own camera. Only the act that
+  holds the character performs. The outgoing act is still drawn under the transition (`tearWipe`,
+  `irisWipe`).
+- **Far layers use layer coordinates.** A layer at depth `d` shows x near `x * d`, not near `x`. Props
+  for an act at x = 60000 scattered around 60000 on a 0.14 layer never appear. Use
+  `cam.toLayer(x, depth)` to place scenery.
+- **Consume one-shot events.** A `landed` flag stays true for the whole step, and `Beats` can chain
+  several transitions within one step. One landing then fired a dozen hops. Read it and clear it
+  (`consumeLanding()`).
+- **Create things when their act starts, not at t = 0.** A jellyfish and a school of fish simulated from
+  the start had drifted away by the time the character arrived.
+- **Scenery sells the demo.** What made the frames rich was mostly layers:
+  - hills, trees and clouds at their depths;
+  - a skyline with lit windows;
+  - a pond with a sloped bank instead of a box;
+  - light shafts under water.
+- **Originality.** The user found reusing earlier examples' cast (jellyfish, kelp, houses) a missed
+  chance. New pieces are expected in each short.

@@ -20,6 +20,8 @@ export interface ParticleOpts {
   drag: number;
   /** Where particles stop (they stick: mud, drops); leave out to fall forever. */
   floor?: (x: number) => number;
+  /** Air or water they drift with: drag pulls their velocity toward this (seeds in the wind, bubbles in a current). */
+  flow?: (x: number, y: number) => V;
 }
 
 export interface Burst {
@@ -61,7 +63,9 @@ export class Particles {
     for (const p of this.list) {
       p.age += dt;
       if (p.landed) continue;
-      p.vx *= k; p.vy = p.vy * k + this.o.gravity * dt;
+      const air = this.o.flow?.(p.x, p.y) ?? { x: 0, y: 0 };
+      p.vx = air.x + (p.vx - air.x) * k;
+      p.vy = air.y + (p.vy - air.y) * k + this.o.gravity * dt;
       p.x += p.vx * dt; p.y += p.vy * dt;
       const f = this.o.floor?.(p.x);
       if (f !== undefined && p.y >= f) { p.y = f; p.landed = true; }
