@@ -12,9 +12,11 @@
     "typecheck": "tsc --noEmit",
     "grab": "node scripts/grab.ts",
     "sheet": "node scripts/sheet.ts",
-    "listen": "node scripts/listen.ts"
+    "listen": "node scripts/listen.ts",
+    "template": "node scripts/template.ts"
   },
   "license": "MIT",
+  "packageManager": "pnpm@11.1.3",
   "devDependencies": {
     "@types/node": "^26.6.2",
     "playwright-core": "^1.63.0",

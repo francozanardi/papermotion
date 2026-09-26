@@ -1,0 +1,32 @@
+name: Release
+
+# Push a tag like v0.2.0 (matching packages/create-papermotion/package.json) to publish
+# create-papermotion to npm. Needs an NPM_TOKEN secret with publish rights.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Check the tag matches the package version
+        run: test "v$(node -p "require('./packages/create-papermotion/package.json').version")" = "$GITHUB_REF_NAME"
+      - name: Publish
+        working-directory: packages/create-papermotion
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Typecheck and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  template:
+    name: New project from the template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Pack create-papermotion as it would be published
+        working-directory: packages/create-papermotion
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: Create a project with it
+        working-directory: ${{ runner.temp }}
+        run: |
+          tar -xzf create-papermotion-*.tgz
+          npm_config_user_agent=pnpm node package/index.js my-film
+      - name: Install, typecheck and test the new project
+        working-directory: ${{ runner.temp }}/my-film
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm typecheck
+          pnpm test
+      - name: Render the starter scene
+        working-directory: ${{ runner.temp }}/my-film
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          npx playwright-core install --with-deps chromium
+          pnpm render hello
+          test -s out/hello.mp4

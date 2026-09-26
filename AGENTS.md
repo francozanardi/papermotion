@@ -4,6 +4,19 @@ Read `README.md` first for what each module does, and `docs/field-notes.md` befo
 it collects the mistakes we made and the fixes that worked. To make a short, use the skill in
 `.claude/skills/papermotion/` (workflow, API reference, art direction, pitfalls, inspection).
 
+## This repository vs. a user's project
+
+This repo develops the engine and holds the reference films in `examples/`. Users start their own
+projects with `npm create papermotion` (`packages/create-papermotion/`), which copies the engine, tools,
+tests, skill and field notes, but none of the reference films (`pnpm template` builds it from this repo
+with `scripts/template.ts`; the starter files are in `packages/create-papermotion/starter/`).
+
+- **Making a new film here: don't open the other `examples/`** unless the user asks. Agents that read
+  other shorts reuse their cast, sets and beats; the lessons that matter are in the skill and in
+  `docs/field-notes.md`.
+- Anything added to `src/`, `scripts/`, `tests/` or the skill ships in the template. Keep them free of
+  references to specific films.
+
 ## Principles
 
 - **Engine vs content.** `src/` is a generic engine; `examples/` is content. If a scene needs a

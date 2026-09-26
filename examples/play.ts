@@ -7,7 +7,7 @@ import { EXAMPLES } from './catalog';
  * ?example=<name>&headless   live but paused: frames are pulled through window.frame(n) (used by the renderer)
  */
 const params = new URLSearchParams(location.search);
-const name = params.get('example') ?? 'sea';
+const name = params.get('example') ?? Object.keys(EXAMPLES)[0];
 const canvas = document.getElementById('stage') as HTMLCanvasElement;
 
 if (!EXAMPLES[name]) {

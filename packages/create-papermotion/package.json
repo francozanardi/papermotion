@@ -1,0 +1,14 @@
+{
+  "name": "create-papermotion",
+  "version": "0.1.0",
+  "description": "Start a papermotion project: a paper-cutout animation engine that AI agents use and extend to make short films in code.",
+  "type": "module",
+  "bin": { "create-papermotion": "index.js" },
+  "files": ["index.js", "template", "README.md"],
+  "scripts": { "prepack": "node ../../scripts/template.ts template" },
+  "engines": { "node": ">=22.18" },
+  "keywords": ["animation", "paper", "cutout", "procedural", "ai-agents", "claude", "canvas", "video"],
+  "repository": { "type": "git", "url": "git+https://github.com/francozanardi/papermotion.git", "directory": "packages/create-papermotion" },
+  "homepage": "https://github.com/francozanardi/papermotion#readme",
+  "license": "MIT"
+}

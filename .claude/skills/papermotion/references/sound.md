@@ -27,7 +27,7 @@ provides voices, a mixer and the cue log; the scene decides what things sound li
   (`videoTime(beats.startOf('crash'))`) and let the score change section on them: calm, chase, a
   silence at the impact, a return, a cadence that lands before the fade.
 
-## Recipes that worked (snow, demo)
+## Recipes that worked
 
 Instruments for scores are ready-made in `instrument.*` (music box, mallet, harp, bass, pad, chime,
 chirp). Build effects from `voice.*`.
