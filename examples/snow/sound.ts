@@ -75,7 +75,7 @@ function effect(mix: Mixer, o: SnowSound, c: Cue): void {
   const sr = o.sampleRate, at = o.video(c.at), pan = c.pan, p = c.pitch;
   switch (c.name) {
     case 'step':
-      mix.add('sfx', at, crunch(c.seed, p, sr), { gain: 0.32 * c.gain, pan });
+      mix.add('sfx', at, crunch(c.seed, p, sr), { gain: 0.21 * c.gain, pan });
       break;
     case 'pat':
       mix.add('sfx', at, layer(sr, { buffer: crunch(c.seed, 0.8, sr, 0.8) }, { buffer: crunch(c.seed + 9, 0.9, sr, 0.8), delay: 0.14, gain: 0.8 }), { gain: 0.45, pan });
