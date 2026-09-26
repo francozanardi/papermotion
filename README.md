@@ -33,6 +33,7 @@ The live view is only a sketchpad.
 | `motion` | `Swimmer` (side-view swimming or flying locomotion), `steer` behaviours, `School` (boids), `Leap` (ballistic jumps planned from A to B). |
 | `paper` | The `Paper` renderer: torn edges that boil, fiber texture, drop shadows, rim light from a scene light, translucent layers, light shafts. |
 | `scenery` | Noise `ridge`s with strata, parametric `flora` (tufts, trees, pines, bushes, rocks, flowers, corals, clouds), `scatter` along a layer with wind sway and pushers. |
+| `fx` | Deterministic particles, tracks, and `Fire`: spring-driven paper flames, wind, smoke, embers and warm light. |
 | `camera` | Spring-follow camera with parallax layers by depth, zoom and handheld drift. |
 | `direction` | Choreography: `Beats` (an actor's performance as a state machine of time- and condition-triggered beats) and time-shaped intents (`ramp`, `envelope`, `blink`, `keys`). |
 | `audio` | Sound made by code: a `SoundLog` of cues and levels fired by the simulation, parametric `voice`s (filtered noise, thumps, plucked strings, FM bells, tones and pads), music helpers (notes, scales, chords, tempo) and a `Mixer` (buses, reverb, limiter, fades, WAV). |

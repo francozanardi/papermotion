@@ -315,3 +315,21 @@ Clawd, a snowball that grows until it escapes down a hill, and a tree that drops
   must be the loudest.
 - **Read loudness from the summary.** ffmpeg's `ebur128` prints running values first; the first
   `I:` is −70 LUFS (silence at t = 0). Parse after `Summary:`.
+
+## 13. A celestial flower (`light`)
+
+- **Let the environment complete the payoff.** The first contact sheet ended with one open flower and scattered stars; the surrounding observatory still looked dormant. A delayed wave of spring-driven blossoms in the existing background buds makes the light's effect spread through the set and gives the ending a second visual beat.
+- **Check determinism at different story states.** Two fresh browser simulations produced identical JPEG hashes and probes at contact, full bloom and the ending (frames 272, 450 and 730). Checking only frame zero would miss stateful choreography and particle differences.
+
+## 14. Care and curiosity across eras (`embers`)
+
+- **Seated reaches need the right IK bend.** The first hand targets used a bend of −1, which lifted both elbows into angular, tense poses. A bend of +1 folds the elbow below the shoulder and gives warming and feeding gestures a relaxed silhouette.
+- **Released props must leave the hand's coordinate system.** Freezing the fuel branch at release left its free end hanging above the ground. Creating a two-point `Plate` at the release pose lets it rotate onto the fire-bed `Surface` and ground, keeping the contact continuous.
+- **Fade paper groups with `paper.layer`.** A tiny spring overshoot past an era boundary briefly exposed the next skyline's paper texture. A per-context alpha does not uniformly attenuate all paper finishing passes; a group layer does. Also omit near-zero era layers.
+- **Give the ending a new action.** Holding the elder's pointing pose through every era was too static. Letting the child inherit the gesture while the elder lowers their hand makes the final passage carry its own meaning.
+
+### Fire and scenery polish
+
+- **Weak flames cannot retain full lateral reach.** At about 2 s, low heat reduced tongue height while the wind kept the same horizontal displacement. The result folded into separate horizontal strips. Bound lateral reach smoothly by tongue height, contract the root spacing with heat, limit width by height, and merge each color layer into one paper silhouette. A regression test exercises weak flames in strong wind in both directions.
+- **Anchor terrain samples to a world grid.** Sampling from the camera's changing view edge moved the ridge's polygon vertices during camera moves. Starting at an integer grid coordinate preserves the same contour through pans and zooms.
+- **Material details help more than more objects.** Bark and end grain, soot and ash, chipped stone, canvas seams and fastenings improve close views without changing the action. Keep the clearing behind the gestures open and soften distant vegetation.

@@ -31,6 +31,8 @@ export { circlePoly, tubePoly } from './paper/geometry';
 export { layoutLetters, textWidth, type Letter } from './paper/type';
 export { drawShafts, type ShaftSpec } from './paper/shafts';
 
+export { Fire, type FireOpts } from './fx/Fire';
+
 // Weather and effects
 export { drawRain, drawRipples, drawDrips, type RainSpec, type SplashSpec, type RippleSpec, type DripSpec } from './weather/rain';
 export { Particles, type Particle, type ParticleOpts, type Burst } from './fx/Particles';

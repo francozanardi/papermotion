@@ -8,6 +8,14 @@ export type MakeStage = (canvas: HTMLCanvasElement, params: URLSearchParams) => 
  * (the player, the render script) without pulling in the scenes themselves.
  */
 export const EXAMPLES: Record<string, () => Promise<MakeStage>> = {
+  embers: async () => {
+    const { EmbersScene } = await import('./embers/main');
+    return canvas => new EmbersScene(canvas);
+  },
+  light: async () => {
+    const { LightScene } = await import('./light/main');
+    return canvas => new LightScene(canvas);
+  },
   kite: async () => {
     const { KiteScene } = await import('./kite/main');
     return (canvas, params) => {
