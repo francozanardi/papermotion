@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "grab": "node scripts/grab.ts",
-    "sheet": "node scripts/sheet.ts"
+    "sheet": "node scripts/sheet.ts",
+    "listen": "node scripts/listen.ts"
   },
   "license": "MIT",
   "devDependencies": {

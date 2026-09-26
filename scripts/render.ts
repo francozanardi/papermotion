@@ -6,6 +6,8 @@
  *   pnpm render kite sea
  *   pnpm render all
  *
+ * Scenes with a `soundtrack` get it mixed and muxed in (and out/<name>.wav, out/<name>_audio.png).
+ *
  * Needs ffmpeg and a Chromium (`npx playwright install chromium`, or set CHROMIUM_PATH).
  */
 import { execFileSync, spawn } from 'node:child_process';
@@ -13,6 +15,7 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Page } from 'playwright-core';
 import { EXAMPLES } from '../examples/catalog.ts';
+import { inspect, loudness, mux, pullAudio } from './audio.ts';
 import { load, open } from './browser.ts';
 
 const OUT = 'out';
@@ -44,6 +47,12 @@ async function render(page: Page, base: string, name: string, codec: string[]): 
   ffmpeg.stdin.end();
   if ((await done) !== 0) throw new Error(`${name}: ffmpeg failed`);
   console.log(` → ${file} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
+  const sound = await pullAudio(page, name, OUT);
+  if (sound) {
+    mux(file, sound.wav);
+    const png = join(OUT, `${name}_audio.png`);
+    console.log(`${name}: sound muxed (${sound.cues.length} cues), ${loudness(inspect(sound.wav, png))} → ${png}`);
+  }
 }
 
 const args = process.argv.slice(2);

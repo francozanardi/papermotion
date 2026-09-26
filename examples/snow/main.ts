@@ -1,10 +1,11 @@
 import {
-  Beats, Camera, Edit, Leap, type Mark, Particles, type PropSet, type RidgeSpec, Roller, type SnowSpec, Stage, Tracks, type V, type View,
+  Beats, Camera, type CueOpts, Edit, Leap, type Stereo, type Mark, Particles, type PropSet, type RidgeSpec, Roller, type SnowSpec, Stage, Tracks, type V, type View,
   circlePoly, clamp, drawProps, drawRidge, drawSnow, easeInOut, envelope, fillGradient, grade, grain, hash, lerp, letterbox, ramp,
   ridgeHeight, scatter, smoothstep, speedRamp, vignette, wash,
 } from '../../src';
 import { Clawd } from './Clawd';
 import { SnowTree, cottage, snowyPine, stalk } from './props';
+import { scoreSnow } from './sound';
 
 const W = 1920, H = 1080;
 
@@ -61,6 +62,9 @@ export class SnowScene extends Stage {
   /** Twigs knocked off by the crash: they fall and stick into the ball as a snowman's arms. */
   private twigs: { leap: Leap; side: 1 | -1; spin: number }[] = [];
   private onBall = false;
+  private flakeLanded = false;
+  private cheered = false;
+  private lastStep = -1;
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas, { duration: 28, preroll: 0.6, rate: speedRamp([{ from: 16.12, to: 16.6, rate: 0.35 }]) });
@@ -102,12 +106,13 @@ export class SnowScene extends Stage {
           this.flake = { x: lerp(70, 6, easeInOut(u)) + Math.sin(since * 4.2) * 26 * (1 - u), y: lerp(-330, -4, u) };
           c.intent.look = { x: c.top.x + this.flake.x, y: c.top.y + this.flake.y };
           c.intent.surprise = 0.5 * ramp(since, 0.2, 0.6);
+          if (since >= FLAKE_FALL && !this.flakeLanded) { this.flakeLanded = true; this.cueAt('sparkle', c.top.x); }
           c.intent.lids = 1 - 0.9 * smoothstep(FLAKE_FALL - 0.15, FLAKE_FALL, since) * (1 - smoothstep(FLAKE_FALL + 0.15, FLAKE_FALL + 0.3, since));
         },
         after: FLAKE_FALL + 0.55, then: 'giggle',
       },
       giggle: {
-        enter: () => { c.jolt(3); this.flakeGone = this.time; },
+        enter: () => { c.jolt(3); this.flakeGone = this.time; this.cueAt('giggle', c.root.x); },
         during: ({ since }) => { c.intent.happy = 1; c.intent.shake = since < 0.35 ? 0.7 : 0; },
         after: 1.4, then: 'scoop',
       },
@@ -115,6 +120,7 @@ export class SnowScene extends Stage {
         during: ({ since }) => { c.intent.crouch = ramp(since, 0, 0.3) * (1 - ramp(since, 0.65, 0.85)); c.intent.look = { x: c.root.x + 120, y: c.root.y }; },
         next: ({ since }) => since > 0.7 && 'push',
         exit: () => {
+          this.cueAt('pat', c.root.x + 80);
           this.ball = new Roller(c.root.x + 80, ground, { radius: 11, grow: 14, maxRadius: 104, friction: 0.5 });
           this.puff.emit({ x: c.root.x + 80, y: ground(c.root.x + 80) }, 10, { angle: -Math.PI / 2, spread: 1.6, speed: [60, 160], life: [0.4, 0.8], size: [2, 4] });
         },
@@ -133,7 +139,7 @@ export class SnowScene extends Stage {
         next: () => { const b = this.ball!; return b.center.x - b.r - (c.root.x + 72) > 60 && 'oops'; },
       },
       oops: {
-        enter: () => c.jolt(-4),
+        enter: () => { c.jolt(-4); this.cueAt('oops', c.root.x); },
         during: () => { c.intent.surprise = 1; c.intent.reach = 0.8; c.intent.look = this.ball!.center; },
         after: 0.8, then: 'chase',
       },
@@ -149,7 +155,7 @@ export class SnowScene extends Stage {
         during: ({ since }) => {
           c.intent.look = { x: c.root.x - 20, y: c.top.y - 300 };
           c.intent.surprise = ramp(since, 0.35, 0.5);
-          if (since > 0.25 && !this.clump) this.clump = { x: c.root.x - 4, y: 760, vy: 0 };
+          if (since > 0.25 && !this.clump) { this.clump = { x: c.root.x - 4, y: 760, vy: 0 }; this.cueAt('whoosh', c.root.x); }
         },
         next: () => this.bury > 0 && 'buried',
       },
@@ -162,6 +168,7 @@ export class SnowScene extends Stage {
         enter: () => {
           this.bury = 0;
           c.jolt(-7);
+          this.cueAt('poof', c.root.x);
           this.puff.emit({ x: c.root.x, y: c.top.y + 30 }, 60, { angle: -Math.PI / 2, spread: 3, speed: [160, 460], life: [0.6, 1.3], size: [3, 8] });
         },
         during: ({ since }) => { c.intent.shake = since < 0.5 ? 1 : 0; c.intent.happy = ramp(since, 0.5, 0.7); },
@@ -176,16 +183,17 @@ export class SnowScene extends Stage {
         after: 0.85, then: 'hop',
       },
       hop: {
-        enter: () => { const b = this.ball!; c.hop({ x: b.center.x, y: b.center.y - b.r + 6 }, 90); },
+        enter: () => { const b = this.ball!; c.hop({ x: b.center.x, y: b.center.y - b.r + 6 }, 90); this.cueAt('hop', c.root.x); },
         next: () => c.consumeLanding() && 'top',
       },
       top: {
         enter: () => {
           this.onBall = true;
           const b = this.ball!;
+          this.cueAt('land', b.center.x);
           this.puff.emit({ x: b.center.x, y: b.center.y - b.r }, 16, { angle: -Math.PI / 2, spread: 2.6, speed: [60, 200], life: [0.4, 0.9], size: [2, 5] });
         },
-        during: ({ since }) => { c.intent.happy = ramp(since, 0.6, 0.9); c.intent.look = since < 0.6 ? { x: c.root.x + 200, y: c.head.y } : null; },
+        during: ({ since }) => { if (since > 0.75 && !this.cheered) { this.cheered = true; this.cueAt('yay', c.root.x); } c.intent.happy = ramp(since, 0.6, 0.9); c.intent.look = since < 0.6 ? { x: c.root.x + 200, y: c.head.y } : null; },
       },
     });
 
@@ -265,6 +273,7 @@ export class SnowScene extends Stage {
       if (b.wall(TREE_X - 16, 0.12)) {
         const hit = b.consumeImpact();
         this.crashAt = t;
+        this.cueAt('crash', TREE_X, { gain: clamp(hit / 400, 0.4, 1.2), data: { speed: hit } });
         this.tree.hit(hit * 0.0022);
         this.tree.cover = 0.55;
         for (const side of [-1, 1] as const) {
@@ -284,18 +293,39 @@ export class SnowScene extends Stage {
       const k = this.clump;
       k.vy += 2400 * dt;
       k.y += k.vy * dt;
-      if (k.y >= c.top.y - 20) { this.bury = 1; this.clump = null; c.jolt(8); }
+      if (k.y >= c.top.y - 20) { this.bury = 1; this.clump = null; c.jolt(8); this.cueAt('plop', c.root.x); }
     }
     this.puff.update(dt);
+    if (b) { this.level('roll', Math.abs(b.vx)); this.level('size', b.r); }
+  }
+
+  /** A sound event at a world x, panned by where it is on screen. */
+  private cueAt(name: string, x: number, o: CueOpts = {}): void {
+    const sx = this.cam.toScreen({ x, y: ground(x) }).x;
+    this.cue(name, { ...o, pan: clamp((sx - W / 2) / (W / 2), -1, 1) * 0.6 });
   }
 
   protected lateUpdate(t: number, dt: number): void {
     const c = this.clawd;
     this.edit.apply(this.cam, t, dt);
     if (this.settling) return;
-    c.feet().forEach((f, k) => { if (f.down && !this.onBall) this.tracks.stamp({ x: f.x, y: f.y + 3 }, { rx: 6, ry: 2.4 }, t, `foot${k}`); });
+    c.feet().forEach((f, k) => {
+      if (f.down && !this.onBall && this.tracks.stamp({ x: f.x, y: f.y + 3 }, { rx: 6, ry: 2.4 }, t, `foot${k}`) && Math.abs(c.speed) > 20 && t - this.lastStep > 0.09) {
+        this.lastStep = t;
+        this.cueAt('step', f.x, { gain: clamp(Math.abs(c.speed) / 180, 0.35, 1), pitch: 0.9 + k * 0.07 });
+      }
+    });
     const b = this.ball;
     if (b) this.furrow.stamp({ x: b.contact.x, y: b.contact.y + 2 }, { rx: Math.max(5, b.r * 0.5), ry: 2.5 + b.r * 0.035, angle: b.slope }, t, 'ball');
+  }
+
+  soundtrack(sampleRate: number): Stereo {
+    const mark = (b: Beat) => { const at = this.beats.startOf(b); return at === undefined ? Infinity : this.videoTime(at); };
+    return scoreSnow({
+      log: this.sound, sampleRate, length: this.videoLength,
+      video: t => this.videoTime(t), scene: v => this.sceneTime(v), rate: t => this.rateAt(t),
+      marks: { push: mark('push'), oops: mark('oops'), crash: Number.isFinite(this.crashAt) ? this.videoTime(this.crashAt) : Infinity, popOut: mark('popOut'), top: mark('top') },
+    });
   }
 
   probe(): Record<string, unknown> {

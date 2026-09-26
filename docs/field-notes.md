@@ -302,3 +302,16 @@ Clawd, a snowball that grows until it escapes down a hill, and a tree that drops
   from the crash landed in the ball as arms.
 - **Engine additions:** `Roller` (a ball that rolls on a ground line, grows as it gathers material and
   stops at walls), `Tracks` (footprints and furrows), and `snowflakes`/`drawSnow` (stateless snowfall).
+
+## 12. Sound from code (`snow`)
+
+- **Cues come from the simulation.** A footstep fires where a footprint is stamped, and the crash
+  fires where the ball hits the wall. Sounds stay in sync whatever the physics does, as cuts do on action.
+- **Map scene time to video time.** Slow motion moves them apart; `videoTime(cue.at)` places the
+  sound, and `rate: rateAt(cue.at)` slows the crash with the picture.
+- **Four feet, four sounds.** The first pass fired 477 steps, several at the same instant. A minimum
+  gap of 0.09 s left 110 and reads as walking.
+- **Read the waveform for balance.** The buried "plop" had a taller spike than the crash. The key moment
+  must be the loudest.
+- **Read loudness from the summary.** ffmpeg's `ebur128` prints running values first; the first
+  `I:` is −70 LUFS (silence at t = 0). Parse after `Summary:`.

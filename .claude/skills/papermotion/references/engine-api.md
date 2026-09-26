@@ -172,6 +172,32 @@ Every stage has `this.paper`, the `Paper` renderer.
   `keys(t, [[time, value], …])`, `speedRamp([{ from, to, rate }])` (for `StageOptions.rate`, slow
   motion).
 
+## audio
+
+Sound is code, like everything else. Nothing here knows what a scene sounds like; scenes compose.
+- **From the simulation:** `this.cue(name, { gain, pan, pitch, data })` fires an event at the current
+  scene time (ignored in the pre-roll); `this.level(name, value)` records a continuous level every step.
+  Both land in `this.sound` (`SoundLog`: `.cues`, `.named(name)`, `.track(name) → t => value`). Each cue
+  has a stable `seed`.
+- **The soundtrack:** override `soundtrack(sampleRate): Stereo | null` on the stage. It runs once after
+  the whole story. Place sounds at `this.videoTime(cue.at)`; read levels at `this.sceneTime(videoT)`;
+  `this.rateAt(t)` gives the slow-motion rate; `this.videoLength` the length.
+- **Voices** (`voice.*`, each `(opts, sampleRate) → Float32Array`; `Param` = number or `t => number`):
+  - `noise({ duration, seed, filter, freq, q, attack, decay, hold, crackle, level })`: steps, crunches,
+    whooshes, wind, rumble. `crackle` makes grains (paper, snow, gravel); `level` drives it over time.
+  - `thump({ duration, seed, from, to, sweep, decay, click, tone })`: impacts and kicks.
+  - `pluck({ freq, duration, seed, decay, brightness })`: Karplus-Strong strings, harp, bass.
+  - `bell({ freq, duration, ratio, index, decay, indexDecay })`: FM bells, music box, celesta.
+  - `tone({ freq, length, release, attack, wave, voices, detune, cutoff, q, vibrato })`: pads, bass,
+    leads, chirps (glide with a `freq` function).
+  - `layer(sr, { buffer, gain, delay }…)` stacks voices into one sound.
+- **DSP:** `Biquad`, `Smoother`, `noiseSource`, `decayEnvelope`, `gate`, `wave`, `hz(midi)`, `db`.
+- **Music:** `note('F#4')`, `degree(root, mode, d)`, `triad(root, mode, d, seventh?)`, `tempo(bpm,
+  offset, swing)`, `MODES`.
+- `Mixer(duration, sampleRate)`: `.bus(name, { gain, reverb })`, `.add(bus, at, buffer, { gain, pan,
+  rate })`, `.render({ reverb: { room, damp, width }, master, ceiling, fadeIn, fadeOut }) → Stereo`.
+  Also `freeverb`, `limit`, `encodeWav`.
+
 ## stage
 
 `Stage` (abstract): `constructor(canvas, { duration, width=1920, height=1080, fps=30, substeps=2,

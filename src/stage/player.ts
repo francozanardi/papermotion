@@ -1,3 +1,4 @@
+import { encodeWav } from '../audio/Mixer';
 import type { Stage } from './Stage';
 
 export interface MountOptions {
@@ -12,6 +13,11 @@ export interface StageHooks {
   frame(n: number): string;
   /** Render frame `n` and return the stage's probe. */
   probe(n: number): Record<string, unknown>;
+  /**
+   * Simulate to the end and mix the scene's soundtrack: a base64 WAV plus the cues at their video
+   * times, or null for a silent scene. Call it after the last frame (or instead of rendering frames).
+   */
+  audio(sampleRate?: number): { wav: string; cues: { name: string; at: number; gain: number }[] } | null;
   /** Start over from frame 0. */
   reset(): void;
   ready: true;
@@ -27,6 +33,13 @@ export function mount(canvas: HTMLCanvasElement, make: (canvas: HTMLCanvasElemen
     meta: { fps: stage.fps, frames: stage.frames, width: stage.width, height: stage.height },
     frame: n => { stage.renderFrame(n); return canvas.toDataURL('image/jpeg', 0.95); },
     probe: n => { stage.renderFrame(n); return stage.probe(); },
+    audio: (sampleRate = 48000) => {
+      stage.advance(stage.frames - 1);
+      const mix = stage.soundtrack(sampleRate);
+      if (!mix) return null;
+      const cues = stage.sound.cues.map(c => ({ name: c.name, at: +stage.videoTime(c.at).toFixed(3), gain: +c.gain.toFixed(2) }));
+      return { wav: base64(encodeWav(mix, sampleRate)), cues };
+    },
     reset: () => { stage = make(canvas); },
     ready: true,
   };
@@ -45,4 +58,10 @@ function play(canvas: HTMLCanvasElement, current: () => Stage, hooks: StageHooks
     setTimeout(loop, 1000 / hooks.meta.fps);
   };
   loop();
+}
+
+function base64(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
 }

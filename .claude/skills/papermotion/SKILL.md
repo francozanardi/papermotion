@@ -41,6 +41,7 @@ Load the other references when you reach that part of the work:
 | Building a character or creature | [references/characters.md](references/characters.md) |
 | Designing sets, light, color, composition, close-ups | [references/art-direction.md](references/art-direction.md) |
 | Checking your work (probes, frame grabs, renders) | [references/inspection.md](references/inspection.md) |
+| Adding sound effects, ambience or music | [references/sound.md](references/sound.md) |
 
 ## Principles
 
@@ -93,6 +94,8 @@ Follow this loop. Iterating on numbers and single frames is cheap; full renders 
 4. **Detail pass** on anything close to camera: eyes, faces, markings, texture of masses. See the
    checklist in [references/characters.md](references/characters.md#detail-pass).
 5. **Finishing.** Grade, grain, vignette, letterbox, transitions, titles.
+6. **Sound.** Cues and levels from the simulation, then a `soundtrack` with effects, ambience and a
+   score. See [references/sound.md](references/sound.md).
 
 ### 4. Inspect, fix, repeat
 
@@ -101,6 +104,7 @@ pnpm grab <name> 1 3.5 6 9 --probe   # numbers only: beats, positions (seconds, 
 pnpm grab <name> 1 3.5 6 9           # frames → out/grab/<name>_<t>.jpg + a contact sheet
 pnpm render <name>                   # full offline render → out/<name>.mp4
 pnpm sheet <name> 2 0 10             # contact sheet of the video (fps, from, seconds)
+pnpm listen <name>                   # soundtrack only (seconds): wav, spectrogram, loudness, cue list
 pnpm typecheck && pnpm test
 ```
 
