@@ -3,13 +3,13 @@ import { type Cue, Mixer, type SoundLog, type Stereo, degree, fbm1, hash, instru
 /** What the score needs from the demo: its sound log, the video length and when each act began (s). */
 export interface DemoSound { log: SoundLog; sampleRate: number; length: number; starts: number[] }
 
-const ACTS = ['title', 'meadow', 'sea', 'roof', 'closing'] as const;
+const ACTS = ['meadow', 'sea', 'roof', 'closing'] as const;
 type ActName = (typeof ACTS)[number];
 
 /**
- * The sound of the tour: each act has its own air (a quiet room, a meadow with birds, the sea, a night
- * with crickets), its own effects, and its own turn of one score in C: a playful title, a pastoral
- * meadow, a dreamy sea, a night on the roofs, and a closing that resolves.
+ * The sound of the tour: each act has its own air (a meadow with birds, the sea, a night with
+ * crickets), its own effects, and its own turn of one score in C: a pastoral meadow, a dreamy sea,
+ * a night on the roofs, and a closing that resolves.
  */
 export function scoreDemo(o: DemoSound): Stereo {
   const mix = new Mixer(o.length, o.sampleRate)
@@ -72,7 +72,7 @@ const tap = (seed: number, pitch: number, sr: number) => layer(sr,
 );
 /** Paper laid down softly: a short, dark puff of noise with a rounded start. */
 const flop = (seed: number, pitch: number, sr: number) => voice.noise({ duration: 0.25, seed, filter: 'lowpass', freq: 1100 * pitch, q: 0.6, crackle: 0.25, attack: 0.008, decay: 0.045 }, sr);
-const actOf = (c: Cue): ActName => ACTS[c.data.act ?? 0] ?? 'title';
+const actOf = (c: Cue): ActName => ACTS[c.data.act ?? 0] ?? 'meadow';
 
 function effect(mix: Mixer, o: DemoSound, c: Cue): void {
   const sr = o.sampleRate, at = c.at, pan = c.pan;
@@ -144,7 +144,20 @@ function effect(mix: Mixer, o: DemoSound, c: Cue): void {
       break;
     case 'jelly': {
       const boing = voice.tone({ freq: t => 170 + 70 * Math.sin(t * 30) * Math.exp(-t / 0.25) + 60 * Math.exp(-t / 0.06), length: 0.45, release: 0.2, attack: 0.005, wave: 'sine' }, sr);
-      mix.add('sfx', at, layer(sr, { buffer: boing }, { buffer: voice.thump({ duration: 0.4, seed: c.seed, from: 90, to: 45, sweep: 0.05, decay: 0.1 }, sr), gain: 0.6 }), { gain: 0.3, pan });
+      mix.add('sfx', at, layer(sr, { buffer: boing }, { buffer: voice.thump({ duration: 0.4, seed: c.seed, from: 90, to: 45, sweep: 0.05, decay: 0.1 }, sr), gain: 0.6 }), { gain: 0.55, pan });
+      break;
+    }
+    case 'boing': {
+      // The bell throws Clawd back up: a springy sweep that wobbles as it rises, and a bright pluck on top.
+      const spring = voice.tone({ freq: t => 160 * (1 + 2.2 * Math.min(1, t / 0.35)) * (1 + 0.08 * Math.sin(t * 55) * Math.exp(-t / 0.2)), length: 0.45, release: 0.15, attack: 0.004, wave: 'sine' }, sr);
+      mix.add('sfx', at, layer(sr, { buffer: spring }, { buffer: voice.thump({ duration: 0.3, seed: c.seed, from: 130, to: 60, sweep: 0.03, decay: 0.06 }, sr), gain: 0.7 }), { gain: 0.5, pan });
+      mix.add('music', at + 0.05, instrument.chime(note('G5'), sr, { decay: 0.35 }), { gain: 0.12, pan });
+      break;
+    }
+    case 'chimney': {
+      // Landing on the brick chimney: a dry clay knock, and the string of bulbs tinkling as it shakes.
+      mix.add('sfx', at, layer(sr, { buffer: voice.thump({ duration: 0.3, seed: c.seed, from: 170, to: 85, sweep: 0.02, decay: 0.05 }, sr) }, { buffer: crunch(c.seed, 1800, sr, 0.5, 0.03), gain: 0.6 }), { gain: 0.5, pan });
+      for (let b = 0; b < 4; b++) mix.add('sfx', at + 0.06 + b * 0.07, instrument.mallet(note('C7') + [0, 4, 7, 12][b], sr, { decay: 0.1 }), { gain: 0.06, pan: pan - 0.2 * b });
       break;
     }
     case 'wire': {
@@ -184,7 +197,6 @@ const BPM = 104, BEAT = 60 / BPM, BAR = BEAT * 4, C5 = note('C5');
 
 /** Chords by act, as scale degrees of C major (the sea borrows lydian's bright II). */
 const CHORDS: Record<ActName, number[]> = {
-  title: [0, 3, 4, 0],
   meadow: [0, 4, 5, 3],
   sea: [0, 1, 0, 1],
   roof: [5, 3, 0, 4],
@@ -217,13 +229,6 @@ function bar(mix: Mixer, sr: number, r: () => number, act: ActName, k: number, a
   const play = (t: number, buf: Float32Array, gain: number, pan = 0) => { if (t < end) mix.add('music', t, buf, { gain, pan }); };
 
   switch (act) {
-    case 'title': {
-      // A bouncy mallet ostinato, and the bass on one and three.
-      [0, 2].forEach(beat => play(at + beat * BEAT, instrument.bass(root, sr, { seed: b * 4 + beat }), 0.55));
-      const pattern = [0, 2, 1, 2, 0, 2, 1, 2];
-      pattern.forEach((p, e) => play(at + e * BEAT * 0.5, instrument.mallet(chord[p] + 12, sr), e % 2 ? 0.1 : 0.16, e % 2 ? 0.3 : -0.2));
-      break;
-    }
     case 'meadow': {
       chord.forEach((n, i) => play(at, instrument.pad(n, BAR, sr, { seed: i + 1, cutoff: 1100 }), 0.045, (i - 1) * 0.5));
       play(at, instrument.bass(root, sr, { seed: b }), 0.6);

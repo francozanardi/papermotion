@@ -258,7 +258,7 @@ A 20-second story with eight shots, two characters, a vehicle and weather. It wo
 
 ## 10. A non-human tour (`demo`)
 
-Clawd, the Claude Code critter, walks through five acts. What we learned:
+Clawd, the Claude Code critter, walks through four acts. What we learned:
 
 - **Simple characters are an advantage.** A blocky body, four stubby legs, two arms and two eyes reads
   well at any size and never breaks the way human rigs do. Give it life with:
@@ -283,6 +283,26 @@ Clawd, the Claude Code critter, walks through five acts. What we learned:
   - light shafts under water.
 - **Originality.** The user found reusing earlier examples' cast (jellyfish, kelp, houses) a missed
   chance. New pieces are expected in each short.
+- **Draw order must not depend on animated positions.** Tree lobes were sorted by their current height;
+  two lobes at the same rest height swapped places whenever their flutter crossed, so the canopy changed
+  shape from frame to frame. Sort (and shade) by the rest layout instead.
+- **A lawn is a plane, not blades.** Every attempt to draw the ground as blades failed: tufts read as a
+  repeated asset, single blades as scattered assets, and a dense short lawn as spikes. Seen from standing
+  height, grass is a plane of color with soft, wide patches of light and shade; blades only show against
+  the sky and right in front of the lens. What worked: a flat green ground with blurred patches fixed in
+  the world, a few fine strands gathered in clumps (`drawSward` with `patchy`), tall grass along the
+  horizon line (kept short), and tall out-of-focus blades in front. A short, sparse fringe to soften
+  where the tall grass meets the plane was rejected: more visible blades, same problem.
+- **Put the character in the grass, not on it.** Standing on top of the tall grass line, Clawd looked
+  like it floated over the field. Lowering its feet a little below the grass line and drawing one row of
+  blades after it (hiding the feet) made it walk through the meadow.
+- **Loose leaves on paper trees read as specks.** The little diamond leaves on the canopy edge looked
+  like noise at this scale; the demo turns them off (`flora.tree({ loose: false })`).
+- **Skylines need a foot.** Background blocks that end at their ground line show sky under them once
+  the camera rises; extend them down (`building({ base })`).
+- **A contact has to touch.** The jellyfish "bounce" kicked Clawd up from ~100 px above the bell.
+  Aim at the measured top of the body (min y of its points), drop onto it, hold a short squash beat
+  where both give, then kick.
 
 ## 11. A snowball story (`snow`)
 

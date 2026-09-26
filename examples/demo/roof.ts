@@ -52,9 +52,9 @@ export class RoofAct implements Act {
     const at = (d: number) => W / 2 + (X - W / 2) * d;
     this.layers = {
       far: scatter({ seed: 71, from: at(0.14) - 2500, to: at(0.14) + 2500, spacing: [60, 150], ground: () => 660, flex: 0,
-        makers: [{ make: building({ width: [60, 140], height: [90, 240], colors: ['#27315d', '#2a3462'], window: '#b8964f', lit: 0.06 }), weight: 1 }] }),
+        makers: [{ make: building({ width: [60, 140], height: [90, 240], colors: ['#27315d', '#2a3462'], window: '#b8964f', lit: 0.06, base: 900 }), weight: 1 }] }),
       near: scatter({ seed: 72, from: at(0.4) - 2500, to: at(0.4) + 2500, spacing: [120, 240], ground: () => 740, flex: 0,
-        makers: [{ make: building({ width: [120, 220], height: [150, 300], colors: ['#1c2346', '#1f2649'], window: '#e0ae58', lit: 0.1 }), weight: 1 }] }),
+        makers: [{ make: building({ width: [120, 220], height: [150, 300], colors: ['#1c2346', '#1f2649'], window: '#e0ae58', lit: 0.1, base: 900 }), weight: 1 }] }),
     };
     this.cam = new Camera(X, { width: W, height: H, stiffness: 4, damping: 4, handheld: 3 });
     this.beats = this.perform();
@@ -109,7 +109,7 @@ export class RoofAct implements Act {
         next: () => { if (!clawd.consumeLanding()) return false; kick(); this.c.cue('wire', clawd.root, { data: { n: this.boings + 1 } }); return ++this.boings >= 2 ? 'across' : 'boing'; },
       },
       across: { during: ({ since }) => Object.assign(i(), { speed: 190 * ramp(since, 0.1, 0.35), happy: 1 }), next: () => clawd.root.x >= B.x - 150 && 'hop' },
-      hop: { enter: () => clawd.jump(B, 70), next: () => clawd.consumeLanding() && 'moon' },
+      hop: { enter: () => clawd.jump(B, 70), next: () => { if (!clawd.consumeLanding()) return false; this.c.cue('chimney', clawd.root); return 'moon'; } },
       moon: { enter: () => this.c.cue('moon', clawd.root), during: ({ since }) => Object.assign(i(), { look: { x: clawd.root.x + 400, y: clawd.root.y - 900 }, happy: ramp(since, 0.6, 0.7), arms: ramp(since, 0.7, 1.0) }), after: 1.5, then: 'gone' },
       gone: {},
     });

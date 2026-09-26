@@ -1,6 +1,5 @@
 /**
- * "A walk through paper" — a papermotion demo starring Clawd. It hops across the title, blows a
- * dandelion in a meadow, dives into a pond that turns out to be a sea, bounces off a jellyfish,
+ * "A walk through paper" — a papermotion demo starring Clawd. It blows a dandelion in a meadow, dives into a pond that turns out to be a sea, bounces off a jellyfish,
  * walks a string of lights over the rooftops, and lands on the closing card.
  *
  * Every act lives in the same world, far apart, with its own camera; transitions tear the page
@@ -32,10 +31,10 @@ export class DemoScene extends Stage {
   private footfalls = -1;
 
   constructor(canvas: HTMLCanvasElement) {
-    super(canvas, { duration: 29.5, preroll: 0.6 });
+    super(canvas, { duration: 24.5, preroll: 0.6 });
     const c: Ctx = { world: this.world, paper: this.paper, ctx: this.ctx, clawd: this.clawd, cue: (name, at, o) => this.cueAt(name, at, o) };
     this.sea = new SeaAct(c, 40000);
-    this.acts = [new TitleAct(c, 0, null), new MeadowAct(c, 20000), this.sea, new RoofAct(c, 60000), new TitleAct(c, 80000, 'made with Claude Opus 5.5')];
+    this.acts = [new MeadowAct(c, 20000), this.sea, new RoofAct(c, 60000), new TitleAct(c, 80000, 'made with Claude Opus 5.5')];
     this.world.wind = (x, y) => (x > 35000 && x < 50000 ? this.sea.current(x, y) : { x: 30 + noise1(x * 0.001, 1) * 20, y: 0 });
   }
 
@@ -72,7 +71,7 @@ export class DemoScene extends Stage {
   /** Move Clawd to the next act and start the transition that reveals it. */
   private next(t: number): void {
     const from = this.acts[this.current], to = this.acts[++this.current];
-    const kinds: [Cut['kind'], number][] = [['tear', 0], ['tear', Math.PI / 2], ['tear', -Math.PI / 2], ['iris', 0]];
+    const kinds: [Cut['kind'], number][] = [['tear', Math.PI / 2], ['tear', -Math.PI / 2], ['iris', 0]];
     const [kind, angle] = kinds[this.current - 1];
     this.cut = { from, to, at: t, kind, angle, center: from.exitPoint?.() ?? { x: 960, y: 540 } };
     this.starts.push(t);

@@ -37,8 +37,9 @@ export const flora = {
    * Broadleaf tree: tapered trunk splitting into branches, scalloped canopy lobes at the branch tips,
    * loose leaves on the silhouette. `leaves` is a dark → light palette assigned by height (self-shade);
    * `light` is the rim color on the side facing the scene light. Sway: trunk < branches < lobes.
+   * `loose: false` leaves out the loose leaves.
    */
-  tree(o: { height: Range; canopy: Range; trunk: string; leaves: string[]; light: string; lobes?: Range; branches?: Range }): PropMaker {
+  tree(o: { height: Range; canopy: Range; trunk: string; leaves: string[]; light: string; lobes?: Range; branches?: Range; loose?: boolean }): PropMaker {
     return (r, x, y, seed) => {
       const h = within(r, o.height), cr = within(r, o.canopy);
       const lean = (r() - 0.5) * 0.12;
@@ -52,6 +53,14 @@ export const flora = {
         const a = i === 0 ? 0 : -Math.PI / 2 + ((i - 1) / Math.max(1, nl - 2) - 0.5) * Math.PI * 1.15;
         const d = i === 0 ? 0 : cr * (0.5 + r() * 0.2);
         return { dx: Math.cos(a) * d, dy: Math.sin(a) * d * 0.8 + (i === 0 ? cr * 0.1 : 0), r: cr * (i === 0 ? 0.8 : 0.5 + r() * 0.2), bumps: 5 + Math.floor(r() * 4), phase: r() * 6 };
+      });
+      // Lower lobes sit in the canopy's own shade: drawn first and darker. Order and tone come from
+      // the rest layout, so lobes that flutter past each other never swap places between frames.
+      const order = lobes.map((_, i) => i).sort((a, b) => lobes[b].dy - lobes[a].dy);
+      const highest = Math.min(...lobes.map(l => l.dy)), lowest = Math.max(...lobes.map(l => l.dy));
+      const tones = lobes.map(l => {
+        const lift = lowest > highest ? (lowest - l.dy) / (lowest - highest) : 1;
+        return o.leaves[Math.min(o.leaves.length - 1, Math.round(lift * (o.leaves.length - 1)))];
       });
       const leaves = Array.from({ length: 5 + Math.floor(r() * 6) }, () => ({ a: r() * Math.PI * 2, d: 0.85 + r() * 0.3, lobe: Math.floor(r() * lobes.length), rot: r() * 3 }));
       return {
@@ -73,18 +82,13 @@ export const flora = {
             const give = l.dy < 0 ? 1 - l.dy / cr : 1; // outer, higher lobes swing more
             return { x: crown.x + l.dx + sway * cr * 0.3 * give + flutter, y: crown.y + l.dy + flutter * 0.5 };
           });
-          // Lower lobes sit in the canopy's own shade: draw them first and darker.
-          const order = lobes.map((_, i) => i).sort((a, b) => centers[b].y - centers[a].y);
-          const highest = Math.min(...centers.map(c => c.y)), lowest = Math.max(...centers.map(c => c.y));
           order.forEach(i => {
             const l = lobes[i];
-            const lift = lowest > highest ? (lowest - centers[i].y) / (lowest - highest) : 1;
-            const tone = o.leaves[Math.min(o.leaves.length - 1, Math.round(lift * (o.leaves.length - 1)))];
-            paper.piece(scallop(centers[i], l.r, l.bumps, l.phase), tone, {
+            paper.piece(scallop(centers[i], l.r, l.bumps, l.phase), tones[i], {
               seed: seed + 10 + i, tear: Math.max(1.5, l.r * 0.05), shadow: 9, rim: { color: o.light, width: l.r * 0.16 },
             });
           });
-          leaves.forEach((lf, i) => {
+          if (o.loose !== false) leaves.forEach((lf, i) => {
             const c = centers[lf.lobe], rr = lobes[lf.lobe].r * lf.d;
             const p = { x: c.x + Math.cos(lf.a) * rr, y: c.y + Math.sin(lf.a) * rr };
             const a = lf.rot + noise1(t * 3 + i, seed + 50) * 0.6;

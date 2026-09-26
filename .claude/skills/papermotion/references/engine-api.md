@@ -137,10 +137,20 @@ Every stage has `this.paper`, the `Paper` renderer.
 - `drawProps(paper, set, from, to, wind: x => number, t, pushers?)`: draw with sway and with bending
   around bodies passing through.
 - **Makers** (`PropMaker`):
-  - `flora.tuft`, `flora.tree`, `flora.pine`, `flora.bush`, `flora.rock`, `flora.flower`, `flora.coral`,
+  - `flora.tuft`, `flora.tree` (`loose: false` drops the loose leaves), `flora.pine`, `flora.bush`, `flora.rock`, `flora.flower`, `flora.coral`,
     `flora.cloud`;
-  - `building({ width, height, colors, window, lit })` for skylines.
+  - `building({ width, height, colors, window, lit, base })` for skylines (`base` extends the block
+    below its ground line so it never floats when the camera rises).
   - You can write your own: `(r, x, y, seed) => ({ x, y, draw(paper, sway, t) {…} })`.
+- **Lawns** (`drawSward(paper, spec, from, to, wind, t, pushers)`): a dense mass of overlapping blades in
+  rows, each dark at the root and light at the tip (`tones: [root, tip][]`), leaning one way together,
+  with broad patches of light and shade and a few dark hairline `accent`s. Hashed per cell (stable
+  while panning), gusts travel across it, blades part around pushers. `depth`/`grow` plant a band that
+  recedes from the lens; `keep(x, y)` limits it to land; `patchy` gathers blades in clumps with bare
+  ground between. For a lawn near the camera, use it only for a short band along the horizon line (one
+  row drawn after the character, to hide its feet) and a few fine strands over a flat ground with soft
+  patches: many visible blades read as assets or spikes.
+- `paper.fill(path, fill, area)` fills a `Path2D` of many small shapes at once (joins a `sheet`).
 - **Night sky:** `starSky(SkySpec)` builds stars and a Milky Way band around a pole; `drawSky(ctx, sky,
   { turn, trail, t, twinkle, wash })` draws them turned by `turn` (rad), as arcs when `trail` > 0 (a
   time-lapse), with `wash` hiding the faintest stars (haze, city light). `skyPoint` places a star.

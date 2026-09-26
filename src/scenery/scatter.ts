@@ -48,13 +48,14 @@ export function scatter(s: ScatterSpec): PropSet {
 const PUSH_REACH = 90, PUSH_HEIGHT = 140;
 
 /**
- * Bend of a prop from a body passing through it: zero right on top and far away, strongest just to
- * either side, and fading as the body rises off the ground. Continuous, so nothing snaps.
+ * Bend of something rooted at (x, y) from a body passing through it: zero right on top and far away,
+ * strongest just to either side, and fading as the body rises off the ground. Continuous, so nothing
+ * snaps.
  */
-function push(p: Prop, by: V): number {
-  const s = (p.x - by.x) / PUSH_REACH;
+export function pushBend(x: number, y: number, by: V): number {
+  const s = (x - by.x) / PUSH_REACH;
   if (Math.abs(s) >= 1) return 0;
-  const lift = 1 - smoothstep(0, PUSH_HEIGHT, p.y - by.y);
+  const lift = 1 - smoothstep(0, PUSH_HEIGHT, y - by.y);
   return s * (1 - s * s) ** 2 * 2.1 * lift;
 }
 
@@ -63,7 +64,7 @@ export function drawProps(paper: Paper, set: PropSet, from: number, to: number, 
   for (const p of set.props) {
     if (p.x < from - 200 || p.x > to + 200) continue;
     let bend = 0;
-    for (const q of pushers) bend += push(p, q);
+    for (const q of pushers) bend += pushBend(p.x, p.y, q);
     const sway = (wind(p.x) * 0.002 + noise1(t * 1.4 + p.x * 0.013, 13) * 0.1) * set.flex + bend;
     p.draw(paper, sway, t);
   }

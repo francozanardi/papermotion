@@ -54,7 +54,8 @@ export { type RidgeSpec, ridgeHeight, drawRidge } from './scenery/ridge';
 export { flora, scallop } from './scenery/flora';
 export { building } from './scenery/building';
 export { starSky, drawSky, skyPoint, type Sky, type SkySpec, type SkyFrame, type Star, type SkyCloud } from './scenery/stars';
-export { type Prop, type PropMaker, type PropSet, type ScatterSpec, scatter, drawProps } from './scenery/scatter';
+export { type Prop, type PropMaker, type PropSet, type ScatterSpec, scatter, drawProps, pushBend } from './scenery/scatter';
+export { type SwardSpec, drawSward } from './scenery/sward';
 
 // Camera
 export { Camera, type CameraOpts, type Framing, type View } from './camera/Camera';

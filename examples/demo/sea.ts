@@ -2,7 +2,7 @@ import {
   type Collider, type RidgeSpec, type ShaftSpec, type SwimSpec, type V, Beats, Camera, Particles, School, circlePoly, drawProps, drawRidge,
   drawShafts, fbm1, fillGradient, flora, noise1, ridgeHeight, scatter, steer,
 } from '../../src';
-import { BODY_H, CLAWD_REST } from '../cast/Clawd';
+import { BODY_H, CLAWD_REST, LEG } from '../cast/Clawd';
 import { BELL, type JellyLook, Jelly } from '../cast/Jelly';
 import { type KelpLook, Kelp } from '../cast/Kelp';
 import { type FishLook, drawFish } from '../cast/fish';
@@ -10,7 +10,7 @@ import type { Act, Ctx } from './act';
 
 const W = 1920, H = 1080;
 
-type Beat = 'sink' | 'swim' | 'bounce' | 'rise' | 'gone';
+type Beat = 'sink' | 'swim' | 'drop' | 'squish' | 'bounce' | 'rise' | 'gone';
 
 const JELLY: JellyLook = { bell: '#f2b9cc', inner: '#f9dbe5', rim: '#fff4f7', gonads: '#e58bab', tentacle: '#f7d3de', arms: '#eea3bb' };
 const KELP: KelpLook = { stalk: '#6d6a2a', blades: ['#8b8634', '#9f973f', '#7a792f'], bulb: '#b6a54e', rim: '#d9d27a' };
@@ -34,7 +34,7 @@ export class SeaAct implements Act {
   private readonly bed: RidgeSpec;
   private readonly far: RidgeSpec;
   private readonly mid: RidgeSpec;
-  private readonly shafts: ShaftSpec = { seed: 31, every: 260, top: -900, length: [1600, 2200], width: [60, 150], angle: 0.22, color: [210, 250, 238], alpha: 0.3 };
+  private readonly shafts: ShaftSpec = { seed: 31, every: 260, top: -900, length: [2900, 3400], width: [60, 150], angle: 0.22, color: [210, 250, 238], alpha: 0.3 };
   private readonly layers;
 
   constructor(private readonly c: Ctx, private readonly X: number) {
@@ -85,23 +85,41 @@ export class SeaAct implements Act {
     this.cam.cut({ x: this.X + 740, y: 420, zoom: 1.55, handheld: 6 });
   }
 
+  /** The top of the bell right now: where Clawd's feet touch it. */
+  private bellTop(): V {
+    const j = this.jelly!;
+    return { x: j.center.x, y: Math.min(...j.body.pts.map(p => p.y)) };
+  }
+
   private perform(): Beats<Beat> {
     const clawd = this.c.clawd, s = clawd.swimmer;
     const jelly = () => this.jelly!;
-    const top = () => ({ x: jelly().center.x - 10, y: jelly().center.y - BELL * 0.8 - BODY_H * 0.55 - 20 });
+    const feet = LEG + BODY_H / 2; // swimmer centre → feet
+    const hover = () => { const b = this.bellTop(); return { x: b.x - 10, y: b.y - feet - 110 }; };
+    const press = (k: number) => { const j = jelly(); for (const p of j.body.pts) if (p.y < j.center.y) p.ay += k; };
     return new Beats<Beat>('sink', {
       sink: { enter: () => this.c.cue('underwater', clawd.center), during: () => s.steer({ x: 90, y: 160 }), after: 0.9, then: 'swim' },
       swim: {
-        during: () => { s.steer(steer.arrive(s.pos, top(), 300, 120)); clawd.intent.look = jelly().center; },
-        next: () => Math.hypot(s.pos.x - top().x, s.pos.y - top().y) < 45 && 'bounce', after: 3.6, then: 'bounce',
+        during: () => { s.steer(steer.arrive(s.pos, hover(), 300, 120)); clawd.intent.look = jelly().center; },
+        next: () => Math.hypot(s.pos.x - hover().x, s.pos.y - hover().y) < 50 && 'drop', after: 3.6, then: 'drop',
+      },
+      // Tuck the legs and drop onto the bell.
+      drop: {
+        during: () => { s.steer({ x: (this.bellTop().x - s.pos.x) * 3, y: 340 }); Object.assign(clawd.intent, { look: jelly().center, arms: 0.3, surprise: 0.4 }); },
+        next: () => clawd.root.y >= this.bellTop().y - 4 && 'squish', after: 1.4, then: 'squish',
+      },
+      // Feet on the bell: both give under the weight for a moment.
+      squish: {
+        enter: () => { jelly().startle(); this.c.cue('jelly', jelly().center); },
+        during: () => { s.steer({ x: 0, y: 40 }); press(5000); Object.assign(clawd.intent, { crouch: 1, look: jelly().center }); },
+        after: 0.14, then: 'bounce',
       },
       bounce: {
         enter: () => {
-          s.kick({ x: 140, y: -560 });
-          jelly().startle();
-          this.c.cue('jelly', jelly().center);
-          for (const p of jelly().body.pts) if (p.y < jelly().center.y) p.ay += 90000;
-          this.puff(clawd.center, 14);
+          s.kick({ x: 140, y: -620 });
+          this.c.cue('boing', clawd.root);
+          press(-12000);
+          this.puff({ x: clawd.root.x, y: clawd.root.y }, 14);
         },
         during: ({ since }) => { s.steer({ x: 120, y: -260 }); Object.assign(clawd.intent, { happy: since > 0.15 ? 1 : 0, arms: 1 }); },
         after: 0.9, then: 'rise',

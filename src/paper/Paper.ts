@@ -232,6 +232,17 @@ export class Paper {
     }
   }
 
+  /**
+   * Fill a ready-made path of many small shapes at once (grass blades, fur, hatching): far cheaper than
+   * a piece each. Inside a `sheet` they join its silhouette, so wrap them in one to get the paper
+   * treatment; outside, they are drawn plain. `area` bounds the shapes, for the sheet.
+   */
+  fill(path: Path2D, fill: string | CanvasGradient, area: V[]): void {
+    this.ctx.fillStyle = fill;
+    this.ctx.fill(path);
+    if (this.flatDepth > 0) this.trackPoly(area, 2);
+  }
+
   /** A tube along a polyline with tapering width and round caps (rubber-hose limb). */
   tube(pts: V[], w0: number, w1: number, fill: string, o: PieceOpts): void {
     this.piece(tubePoly(smooth(pts, 6), u => w0 + (w1 - w0) * u), fill, o);
