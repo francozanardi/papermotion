@@ -1,10 +1,10 @@
 import {
   Beats, Camera, type CueOpts, Edit, Leap, type Stereo, type Mark, Particles, type PropSet, type RidgeSpec, Roller, type SnowSpec, Stage, Tracks, type V, type View,
   circlePoly, clamp, drawProps, drawRidge, drawSnow, easeInOut, envelope, fillGradient, grade, grain, hash, lerp, letterbox, ramp,
-  ridgeHeight, scatter, smoothstep, speedRamp, vignette, wash,
+  ridgeHeight, scatter, smoothstep, vignette, wash,
 } from '../../src';
 import { Clawd } from './Clawd';
-import { SnowTree, cottage, snowyPine, stalk } from './props';
+import { SnowTree, cottage, snowyPine } from './props';
 import { scoreSnow } from './sound';
 
 const W = 1920, H = 1080;
@@ -17,7 +17,7 @@ const ground = (x: number): number => {
   return lerp(TOP + Math.sin(SLOPE_FROM * 0.004) * 5, BOTTOM + Math.sin(SLOPE_TO * 0.005) * 4, easeInOut((x - SLOPE_FROM) / (SLOPE_TO - SLOPE_FROM)));
 };
 
-const TREE_X = 3150, LAMP_X = 2600, START_X = 430, STOP_X = 880;
+const TREE_X = 3150, LAMP_X = 2600, START_X = 570, STOP_X = 880;
 
 const P = {
   snow: '#e9edf8',
@@ -48,7 +48,6 @@ export class SnowScene extends Stage {
   private readonly puff = new Particles({ seed: 5, gravity: 900, drag: 2.2, floor: x => ground(x) + 4 });
   private readonly beats: Beats<Beat>;
   private readonly edit: Edit<Shot>;
-  private readonly stalks: PropSet;
   private readonly far: PropSet;
   private readonly village: PropSet;
   private readonly near: PropSet;
@@ -67,17 +66,12 @@ export class SnowScene extends Stage {
   private lastStep = -1;
 
   constructor(canvas: HTMLCanvasElement) {
-    super(canvas, { duration: 28, preroll: 0.6, rate: speedRamp([{ from: 16.12, to: 16.6, rate: 0.35 }]) });
+    super(canvas, { duration: 27, preroll: 0.6 });
     this.paper.light = { x: 0.7, y: 0.65 };
     this.world.ground = ground;
     const c = this.clawd, cam = this.cam;
     c.floor = (x, y) => (this.onBall && this.ball ? this.ball.center.y - this.ball.r + 6 : this.world.floorBelow(x, y));
 
-    this.stalks = scatter({
-      seed: 21, from: -400, to: 3900, spacing: [70, 190], ground, flex: 0.6,
-      makers: [{ make: stalk({ colors: ['#7d6f7c', '#8c7d77', '#675c70'], height: [22, 48] }), weight: 1 }],
-      avoid: [[STOP_X - 60, STOP_X + 220], [2700, 3250]],
-    });
     const ridgeFar: RidgeSpec = { seed: 3, base: 560, amp: 70, freq: 0.0025, color: '#8f9acb', tear: 3, bands: [{ offset: 90, color: '#7f8bbd', amp: 30 }] };
     const ridgeMid: RidgeSpec = { seed: 8, base: 690, amp: 40, freq: 0.004, color: '#aab3d9', tear: 2.5 };
     const ridgeNear: RidgeSpec = { seed: 13, base: 830, amp: 45, freq: 0.003, color: '#c7cee8', tear: 2 };
@@ -374,9 +368,6 @@ export class SnowScene extends Stage {
       this.drawLampGlowOnSnow();
       this.tracks.draw(v.from, v.to, t, m => this.drawPrint(m));
       this.furrow.draw(v.from, v.to, t, m => this.drawFurrow(m));
-      const pushers: V[] = c.feet().map(f => ({ x: f.x, y: f.y }));
-      if (this.ball) pushers.push(this.ball.contact);
-      drawProps(paper, this.stalks, v.from, v.to, () => 10, t, pushers);
       this.drawLamp(t);
       this.tree.draw(paper, P.lampRim);
       if (this.ball) this.drawBall(this.ball);

@@ -1,4 +1,4 @@
-import { type Paper, type PropMaker, Spring, type V, circlePoly, noise1, pick, rng, within } from '../../src';
+import { type Paper, type PropMaker, Spring, type V, noise1, pick, rng, within } from '../../src';
 
 /** A pine in blue shadow with snow resting on the ledge of every tier. */
 export function snowyPine(o: { height: [number, number]; width: [number, number]; colors: string[]; snow: string }): PropMaker {
@@ -38,26 +38,6 @@ export function cottage(o: { colors: string[]; roof: string; snow: string; windo
           const wx = x + w * (wins === 1 ? 0.4 : 0.22 + i * 0.4), wy = y - h * 0.62;
           paper.piece([{ x: wx, y: wy }, { x: wx + 14, y: wy }, { x: wx + 14, y: wy + 17 }, { x: wx, y: wy + 17 }], o.window, { seed: seed + 10 + i, tear: 0.5, shadow: 0, edge: false, texture: 0.1 });
         }
-      },
-    };
-  };
-}
-
-/** A dry stalk poking out of the snow: bends away from feet and rolling balls. */
-export function stalk(o: { colors: string[]; height: [number, number] }): PropMaker {
-  return (r, x, y, seed) => {
-    const n = 2 + Math.floor(r() * 3), color = pick(r, o.colors);
-    const blades = Array.from({ length: n }, (_, i) => ({ a: (i / Math.max(1, n - 1) - 0.5) * 0.7 + (r() - 0.5) * 0.3, h: within(r, o.height), seedHead: r() < 0.5 }));
-    return {
-      x, y,
-      draw(paper, sway) {
-        blades.forEach((b, i) => {
-          const a = b.a + sway * 1.3;
-          const tip = { x: x + Math.sin(a) * b.h, y: y + 6 - Math.cos(a) * b.h };
-          const mid = { x: x + Math.sin(a * 0.5) * b.h * 0.5, y: y + 6 - Math.cos(a * 0.5) * b.h * 0.5 };
-          paper.tube([{ x, y: y + 8 }, mid, tip], 2.4, 1, color, { seed: seed + i, tear: 0.2, shadow: 2, edge: false });
-          if (b.seedHead) paper.piece(circlePoly(tip, 3.4, 8, 2.4), color, { seed: seed + 9 + i, tear: 0.4, shadow: 2, edge: false });
-        });
       },
     };
   };
