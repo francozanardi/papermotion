@@ -95,7 +95,7 @@ export class MeadowAct implements Act {
     const clawd = this.c.clawd, i = () => clawd.intent;
     return new Beats<Beat>('walk', {
       walk: { during: ({ since }) => Object.assign(i(), { speed: 160 * ramp(since, 0, 0.3) }), next: () => clawd.root.x >= this.dandelion.x - 105 && 'look' },
-      look: { during: ({ since }) => Object.assign(i(), { speed: 160 * (1 - ramp(since, 0, 0.25)), look: this.head, surprise: ramp(since, 0.3, 0.5) }), after: 0.65, then: 'bump' },
+      look: { enter: () => this.c.cue('oh', clawd.root), during: ({ since }) => Object.assign(i(), { speed: 160 * (1 - ramp(since, 0, 0.25)), look: this.head, surprise: ramp(since, 0.3, 0.5) }), after: 0.65, then: 'bump' },
       bump: {
         during: ({ since }) => Object.assign(i(), { look: this.head, crouch: ramp(since, 0, 0.2), arms: ramp(since, 0.15, 0.3) }),
         next: ({ since }) => {
@@ -103,7 +103,7 @@ export class MeadowAct implements Act {
           return this.released && clawd.consumeLanding() && 'watch';
         },
       },
-      watch: { during: ({ since }) => Object.assign(i(), { look: this.seedsCenter(), happy: ramp(since, 0.35, 0.45), arms: 0.5 + Math.sin(since * 6) * 0.2 }), after: 1.1, then: 'follow' },
+      watch: { enter: () => this.c.cue('giggle', clawd.root), during: ({ since }) => Object.assign(i(), { look: this.seedsCenter(), happy: ramp(since, 0.35, 0.45), arms: 0.5 + Math.sin(since * 6) * 0.2 }), after: 1.1, then: 'follow' },
       follow: { during: ({ since }) => Object.assign(i(), { speed: 250 * ramp(since, 0, 0.3), look: this.seedsCenter() }), next: () => clawd.root.x >= this.pond[0] - 20 && 'leap' },
       leap: {
         enter: () => clawd.jump({ x: this.pond[0] + 420, y: G + 8 }, 150, 2600),
@@ -117,11 +117,13 @@ export class MeadowAct implements Act {
 
   private release(): void {
     this.stem.vel.x += 5;
+    this.c.cue('seeds', this.head);
     this.seeds.emit(this.head, 90, { angle: -0.4, spread: 2.6, speed: [40, 220], life: [5, 9], size: [0.8, 1.2] });
   }
 
   private splashUp(): void {
     const at = { x: this.c.clawd.root.x, y: G + 4 };
+    this.c.cue('splash', at);
     this.splash.emit(at, 70, { angle: -Math.PI / 2, spread: 1.4, speed: [300, 900], life: [0.5, 1.2], size: [3, 8] });
   }
 

@@ -6,12 +6,13 @@
  * Every act lives in the same world, far apart, with its own camera; transitions tear the page
  * or open an iris between them. Content only: the acts are in this folder.
  */
-import { type V, Stage, grain, irisWipe, noise1, tearWipe, vignette } from '../../src';
+import { type CueOpts, type Stereo, type V, Stage, clamp, grain, irisWipe, noise1, tearWipe, vignette } from '../../src';
 import { Clawd } from '../cast/Clawd';
 import type { Act, Ctx } from './act';
 import { MeadowAct } from './meadow';
 import { RoofAct } from './roof';
 import { SeaAct } from './sea';
+import { scoreDemo } from './sound';
 import { TitleAct } from './title';
 
 const CLAWD = { body: '#d97757', top: '#e8906f', under: '#b95f42', legs: '#c96a4c', eye: '#1c1512', rim: '#ffd6bf', shade: 'rgba(90, 30, 10, 0.32)' };
@@ -25,10 +26,14 @@ export class DemoScene extends Stage {
   private current = 0;
   private cut: Cut | null = null;
   private readonly clawd = new Clawd({ x: 0, y: 0 }, CLAWD);
+  /** When each act began (scene seconds), for the score. */
+  private readonly starts: number[] = [0];
+  private wasAirborne = false;
+  private footfalls = -1;
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas, { duration: 29.5, preroll: 0.6 });
-    const c: Ctx = { world: this.world, paper: this.paper, ctx: this.ctx, clawd: this.clawd };
+    const c: Ctx = { world: this.world, paper: this.paper, ctx: this.ctx, clawd: this.clawd, cue: (name, at, o) => this.cueAt(name, at, o) };
     this.sea = new SeaAct(c, 40000);
     this.acts = [new TitleAct(c, 0, null), new MeadowAct(c, 20000), this.sea, new RoofAct(c, 60000), new TitleAct(c, 80000, 'made with Claude Opus 5.5')];
     this.world.wind = (x, y) => (x > 35000 && x < 50000 ? this.sea.current(x, y) : { x: 30 + noise1(x * 0.001, 1) * 20, y: 0 });
@@ -44,6 +49,24 @@ export class DemoScene extends Stage {
     if (act.done && !this.cut && this.current < this.acts.length - 1) this.next(t);
     this.acts.forEach((a, i) => a.update(t, dt, i === this.current));
     this.clawd.update(dt);
+    this.listen();
+  }
+
+  /** Sounds every act shares: Clawd's hops, landings and steps. */
+  private listen(): void {
+    const c = this.clawd, air = c.airborne;
+    if (air && !this.wasAirborne) this.cueAt('jump', c.root, { data: { act: this.current } });
+    if (!air && this.wasAirborne && c.mode === 'walk') this.cueAt('land', c.root, { data: { act: this.current } });
+    this.wasAirborne = air;
+    const f = c.footfalls;
+    if (f >= 0 && this.footfalls >= 0 && f !== this.footfalls) this.cueAt('step', c.root, { data: { act: this.current }, pitch: f % 2 ? 1.08 : 0.95 });
+    this.footfalls = f;
+  }
+
+  /** A sound at a world point, panned by where the current act's camera shows it. */
+  private cueAt(name: string, at: V, o: CueOpts = {}): void {
+    const x = this.acts[this.current].cam.toScreen(at).x;
+    this.cue(name, { ...o, pan: clamp((x - 960) / 960, -1, 1) * 0.6 });
   }
 
   /** Move Clawd to the next act and start the transition that reveals it. */
@@ -52,6 +75,8 @@ export class DemoScene extends Stage {
     const kinds: [Cut['kind'], number][] = [['tear', 0], ['tear', Math.PI / 2], ['tear', -Math.PI / 2], ['iris', 0]];
     const [kind, angle] = kinds[this.current - 1];
     this.cut = { from, to, at: t, kind, angle, center: from.exitPoint?.() ?? { x: 960, y: 540 } };
+    this.starts.push(t);
+    this.cue(kind, { data: { act: this.current } });
     to.begin(t);
   }
 
@@ -60,6 +85,10 @@ export class DemoScene extends Stage {
     this.acts[this.current].lateUpdate(t, dt);
     this.cut?.from.lateUpdate(t, dt);
     if (this.cut && t - this.cut.at > TRANSITION) this.cut = null;
+  }
+
+  soundtrack(sampleRate: number): Stereo {
+    return scoreDemo({ log: this.sound, sampleRate, length: this.videoLength, starts: this.starts });
   }
 
   probe(): Record<string, unknown> {

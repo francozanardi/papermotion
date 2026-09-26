@@ -76,6 +76,9 @@ export class Clawd {
 
   get airborne(): boolean { return this.mode === 'air'; }
 
+  /** Footfalls so far while walking: it goes up by one each time a pair of feet comes down. */
+  get footfalls(): number { return this.mode === 'walk' && this.walk > 0.3 ? Math.floor(this.phase / Math.PI) : -1; }
+
   /**
    * Whether it touched down since the last call, clearing the flag. Use this in beats: several beats
    * can chain within one step, and a plain flag would let one landing trigger them all.

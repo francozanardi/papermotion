@@ -40,6 +40,7 @@ export { Tracks, type Mark, type TracksOpts } from './fx/Tracks';
 // Audio: sound events from the simulation, parametric voices, scores and a mixer
 export { type Stereo, type FilterType, type Wave, Biquad, Smoother, hz, db, noiseSource, decayEnvelope, gate, wave, softClip } from './audio/dsp';
 export { voice, layer, type Param } from './audio/voices';
+export { instrument } from './audio/instruments';
 export { Mixer, freeverb, limit, encodeWav, type BusOpts, type PlaceOpts, type MixOpts } from './audio/Mixer';
 export { SoundLog, type Cue, type CueOpts } from './audio/SoundLog';
 export { note, degree, triad, tempo, MODES, type Mode, type Note } from './audio/music';

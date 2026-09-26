@@ -191,6 +191,8 @@ Sound is code, like everything else. Nothing here knows what a scene sounds like
   - `tone({ freq, length, release, attack, wave, voices, detune, cutoff, q, vibrato })`: pads, bass,
     leads, chirps (glide with a `freq` function).
   - `layer(sr, { buffer, gain, delay }…)` stacks voices into one sound.
+- **Instruments** (`instrument.*`, pitched by MIDI, peak near 1): `musicBox`, `mallet`, `harp`, `bass`,
+  `pad(midi, length)`, `chime`, and `chirp(fromHz, toHz, length)` for a small creature's voice.
 - **DSP:** `Biquad`, `Smoother`, `noiseSource`, `decayEnvelope`, `gate`, `wave`, `hz(midi)`, `db`.
 - **Music:** `note('F#4')`, `degree(root, mode, d)`, `triad(root, mode, d, seventh?)`, `tempo(bpm,
   offset, swing)`, `MODES`.

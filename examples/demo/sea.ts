@@ -90,7 +90,7 @@ export class SeaAct implements Act {
     const jelly = () => this.jelly!;
     const top = () => ({ x: jelly().center.x - 10, y: jelly().center.y - BELL * 0.8 - BODY_H * 0.55 - 20 });
     return new Beats<Beat>('sink', {
-      sink: { during: () => s.steer({ x: 90, y: 160 }), after: 0.9, then: 'swim' },
+      sink: { enter: () => this.c.cue('underwater', clawd.center), during: () => s.steer({ x: 90, y: 160 }), after: 0.9, then: 'swim' },
       swim: {
         during: () => { s.steer(steer.arrive(s.pos, top(), 300, 120)); clawd.intent.look = jelly().center; },
         next: () => Math.hypot(s.pos.x - top().x, s.pos.y - top().y) < 45 && 'bounce', after: 3.6, then: 'bounce',
@@ -99,11 +99,13 @@ export class SeaAct implements Act {
         enter: () => {
           s.kick({ x: 140, y: -560 });
           jelly().startle();
+          this.c.cue('jelly', jelly().center);
           for (const p of jelly().body.pts) if (p.y < jelly().center.y) p.ay += 90000;
           this.puff(clawd.center, 14);
         },
         during: ({ since }) => { s.steer({ x: 120, y: -260 }); Object.assign(clawd.intent, { happy: since > 0.15 ? 1 : 0, arms: 1 }); },
         after: 0.9, then: 'rise',
+        exit: () => this.c.cue('yay', clawd.center),
       },
       rise: { during: () => { s.steer({ x: 110, y: -300 }); Object.assign(clawd.intent, { happy: 1, arms: 0.8 }); }, next: () => s.pos.y < 300 && 'gone' },
       gone: {},
@@ -124,7 +126,10 @@ export class SeaAct implements Act {
     this.beats.update(t, dt);
     const c = clawd.center;
     this.me.x = c.x; this.me.y = c.y;
-    if (Math.floor(t * 30) % 5 === 0 && Math.floor((t - dt) * 30) % 5 !== 0) this.puff({ x: c.x + 30, y: c.y - 30 }, 1);
+    if (Math.floor(t * 30) % 5 === 0 && Math.floor((t - dt) * 30) % 5 !== 0) {
+      this.puff({ x: c.x + 30, y: c.y - 30 }, 1);
+      this.c.cue('bubble', c, { gain: 0.5 });
+    }
   }
 
   lateUpdate(t: number, dt: number): void {

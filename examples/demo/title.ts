@@ -23,6 +23,10 @@ export class TitleAct implements Act {
   private beats: Beats<'drop' | 'hop' | 'off' | 'gone' | 'stay'>;
   private hop = 0;
   private begun = 0;
+  private started = false;
+  private cheered = false;
+  /** Time of the previous step, to fire each letter's tap exactly once. */
+  private last = -Infinity;
   private readonly confetti = new Particles({ seed: 9, gravity: 260, drag: 1.6 });
   private readonly bits: ReturnType<typeof scatter>;
 
@@ -58,6 +62,7 @@ export class TitleAct implements Act {
 
   begin(t: number): void {
     this.begun = t;
+    this.started = true;
     const clawd = this.c.clawd;
     clawd.floor = x => this.floor(x, t);
     const first = this.tagline ? 6 : 0; // the closing card lands Clawd on the "m"
@@ -72,7 +77,8 @@ export class TitleAct implements Act {
     const land = (i: number, t: number) => {
       this.tiles[i].dip.vel.y += 320;
       this.hop = i;
-      if (this.tagline) this.burst(this.top(i, t));
+      this.c.cue('letter', this.top(i, t), { data: { i, closing: this.tagline ? 1 : 0 } });
+      if (this.tagline) { this.burst(this.top(i, t)); this.c.cue('confetti', this.top(i, t)); }
     };
     return new Beats('drop', {
       drop: {
@@ -99,6 +105,12 @@ export class TitleAct implements Act {
 
   update(t: number, dt: number, active: boolean): void {
     for (const tile of this.tiles) tile.dip.step({ x: 0, y: 0 }, dt);
+    // Each letter taps the table as its drop settles (the overshoot first reaches the baseline).
+    if (this.started) this.tiles.forEach((tile, i) => {
+      const hit = this.begun + tile.at + 0.23;
+      if (t >= hit && this.last < hit) this.c.cue('drop', { x: tile.x, y: this.baseline }, { data: { i }, gain: this.tagline ? 0.6 : 1 });
+    });
+    this.last = t;
     this.confetti.update(dt);
     if (!active) return;
     const clawd = this.c.clawd;
@@ -107,6 +119,7 @@ export class TitleAct implements Act {
     this.beats.update(t, dt);
     if (this.beats.current === 'stay') {
       const since = this.beats.since(t);
+      if (since >= 0.7 && !this.cheered) { this.cheered = true; this.c.cue('yay', clawd.root); }
       Object.assign(clawd.intent, { happy: ramp(since, 0.5, 0.6), wave: ramp(since, 0.7, 0.9) * 1.4, arms: 0.35, look: { x: clawd.root.x, y: clawd.root.y + 600 } });
     }
   }

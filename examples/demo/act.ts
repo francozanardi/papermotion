@@ -1,4 +1,4 @@
-import type { Camera, Paper, V, World } from '../../src';
+import type { Camera, CueOpts, Paper, V, World } from '../../src';
 import type { Clawd } from '../cast/Clawd';
 
 /** What every act gets: the shared world, paper and canvas, and the one Clawd who travels between them. */
@@ -7,6 +7,8 @@ export interface Ctx {
   paper: Paper;
   ctx: CanvasRenderingContext2D;
   clawd: Clawd;
+  /** Fire a sound event at a world point (panned by where the current act's camera shows it). */
+  cue(name: string, at: V, o?: CueOpts): void;
 }
 
 /**

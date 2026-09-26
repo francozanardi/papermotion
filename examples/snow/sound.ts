@@ -1,4 +1,4 @@
-import { type Cue, Mixer, type SoundLog, type Stereo, degree, fbm1, hz, layer, note, rng, triad, voice } from '../../src';
+import { type Cue, Mixer, type SoundLog, type Stereo, degree, fbm1, instrument, layer, note, rng, triad, voice } from '../../src';
 
 /** What the score needs from the scene: its sound log, time maps, and when the story turns (video seconds). */
 export interface SnowSound {
@@ -60,22 +60,19 @@ function rolling(mix: Mixer, o: SnowSound): void {
 
 // --- effects, one recipe per cue ---
 
-const crunch = (seed: number, pitch: number, sr: number, bright = 1) => layer(sr,
-  { buffer: voice.noise({ duration: 0.12, seed, filter: 'bandpass', freq: 2300 * pitch * bright, q: 0.9, crackle: 0.85, attack: 0.003, decay: 0.03 }, sr) },
+const crunch = (seed: number, pitch: number, sr: number, bright = 1, crackle = 0.85) => layer(sr,
+  { buffer: voice.noise({ duration: 0.12, seed, filter: 'bandpass', freq: 2300 * pitch * bright, q: 0.9, crackle, attack: 0.003, decay: 0.03 }, sr) },
   { buffer: voice.noise({ duration: 0.1, seed: seed + 1, filter: 'lowpass', freq: 420 * pitch, q: 0.8, attack: 0.002, decay: 0.025 }, sr), gain: 0.9 },
 );
 
 /** Clawd's voice: short sung glides, like a toy bird. */
-const chirp = (from: number, to: number, length: number, sr: number, vibrato = 0) => voice.tone({
-  freq: t => from + (to - from) * Math.min(1, t / length), length, release: 0.05, attack: 0.012, wave: 'triangle', cutoff: 3200,
-  vibrato: vibrato ? { rate: 22, depth: vibrato } : undefined,
-}, sr);
+const chirp = (from: number, to: number, length: number, sr: number, vibrato = 0) => instrument.chirp(from, to, length, sr, { vibrato });
 
 function effect(mix: Mixer, o: SnowSound, c: Cue): void {
   const sr = o.sampleRate, at = o.video(c.at), pan = c.pan, p = c.pitch;
   switch (c.name) {
     case 'step':
-      mix.add('sfx', at, crunch(c.seed, p, sr), { gain: 0.21 * c.gain, pan });
+      mix.add('sfx', at, crunch(c.seed, p, sr, 0.85, 0.6), { gain: 0.12 * c.gain, pan });
       break;
     case 'pat':
       mix.add('sfx', at, layer(sr, { buffer: crunch(c.seed, 0.8, sr, 0.8) }, { buffer: crunch(c.seed + 9, 0.9, sr, 0.8), delay: 0.14, gain: 0.8 }), { gain: 0.45, pan });
@@ -115,7 +112,7 @@ function effect(mix: Mixer, o: SnowSound, c: Cue): void {
       break;
     case 'sparkle':
       [note('A6'), note('C7'), note('F7')].forEach((m, i) =>
-        mix.add('music', at + i * 0.07, voice.bell({ freq: hz(m), duration: 1.6, ratio: 7.1, index: 1.1, decay: 0.45 }, sr), { gain: 0.3, pan: pan + (i - 1) * 0.3 }));
+        mix.add('music', at + i * 0.07, instrument.chime(m, sr), { gain: 0.3, pan: pan + (i - 1) * 0.3 }));
       break;
     case 'giggle':
       for (let i = 0; i < 4; i++) mix.add('voice', at + i * 0.1, chirp(760 - i * 40, 980 - i * 60, 0.06, sr), { gain: 0.5 * (1 - i * 0.18), pan });
@@ -162,18 +159,15 @@ function waltz(mix: Mixer, o: SnowSound): void {
 
   const box = (at: number, midi: number, vel: number, pan = 0.1) => {
     if (at > m.crash && at < m.popOut - 0.05 && vel > 0.3) return;
-    mix.add('music', at, layer(sr,
-      { buffer: voice.bell({ freq: hz(midi), duration: 2.2, ratio: 4, index: 1.3, decay: 0.55, indexDecay: 0.06 }, sr) },
-      { buffer: voice.bell({ freq: hz(midi + 12), duration: 1.2, ratio: 3, index: 0.6, decay: 0.25 }, sr), gain: 0.25 },
-    ), { gain: 0.34 * vel, pan });
+    mix.add('music', at, instrument.musicBox(midi, sr), { gain: 0.34 * vel, pan });
   };
   const harp = (at: number, midi: number, vel: number, pan: number) =>
-    mix.add('music', at, voice.pluck({ freq: hz(midi), duration: 1.6, seed: Math.round(at * 100) + midi, decay: 0.9, brightness: 0.45 }, sr), { gain: 0.4 * vel, pan });
+    mix.add('music', at, instrument.harp(midi, sr, { seed: Math.round(at * 100) + midi }), { gain: 0.4 * vel, pan });
   const bass = (at: number, midi: number, vel: number) =>
-    mix.add('music', at, voice.pluck({ freq: hz(midi), duration: 2.2, seed: Math.round(at * 10) + 3, decay: 1.6, brightness: 0.25 }, sr), { gain: 0.6 * vel, pan: -0.15 });
+    mix.add('music', at, instrument.bass(midi, sr, { seed: Math.round(at * 10) + 3 }), { gain: 0.6 * vel, pan: -0.15 });
   const pad = (at: number, chord: number[], length: number, vel: number) => {
     for (const [i, n] of chord.entries()) {
-      mix.add('music', at, voice.tone({ freq: hz(n), length, release: 1.2, attack: 0.5, wave: 'saw', voices: 3, detune: 14, cutoff: 850, seed: i + 1 }, sr), { gain: 0.05 * vel, pan: (i - 1) * 0.5 });
+      mix.add('music', at, instrument.pad(n, length, sr, { seed: i + 1 }), { gain: 0.05 * vel, pan: (i - 1) * 0.5 });
     }
   };
 

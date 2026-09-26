@@ -27,7 +27,10 @@ provides voices, a mixer and the cue log; the scene decides what things sound li
   (`videoTime(beats.startOf('crash'))`) and let the score change section on them: calm, chase, a
   silence at the impact, a return, a cadence that lands before the fade.
 
-## Recipes that worked (snow)
+## Recipes that worked (snow, demo)
+
+Instruments for scores are ready-made in `instrument.*` (music box, mallet, harp, bass, pad, chime,
+chirp). Build effects from `voice.*`.
 
 | Sound | Recipe |
 | --- | --- |
@@ -40,12 +43,20 @@ provides voices, a mixer and the cue log; the scene decides what things sound li
 | Music box | `bell` `ratio` 4, `index` 1.3, `indexDecay` 0.06 + a quiet octave `bell` |
 | Harp, bass | `pluck`, brightness 0.45 (harp) / 0.25 (bass) |
 | Pad | `tone` saw × 3 voices, detune 14 cents, cutoff ~850 Hz, slow attack |
+| Paper tearing | `noise` bandpass sweeping up and back, `crackle` 0.97, `level` rising and falling over ~1 s |
+| Splash | lowpass noise sweep 5.6 kHz → 600 Hz + a low `thump` + a few rising sine "bubbles" |
+| Rubbery bounce | a sine whose pitch wobbles (`sin(30t)·e^(−t/0.25)`) over a soft `thump` |
+| Wire twang | a saw with a falling pitch and a closing low-pass + a low `bass` pluck |
+| Crickets | a high sine gated by `max(0, sin)^8` pulses |
+| Notes on contact | each hop lands on the next note of a pentatonic scale: a tune played by the action |
 
 ## Mixing
 
 - Aim for about −16 LUFS integrated and a true peak under −1 dBFS (the limiter holds the ceiling).
 - The biggest story moment should be the loudest thing; small events (a plop, a step) must not beat it.
   Read the waveform in `out/<name>_audio.png`: the tallest spike should be the key moment.
+- Several acts or sets: give each its own ambience bed, faded in and out over its stretch of video.
+- Fire time-based cues on a crossing of the previous step's time, not `t - dt`: float error fires them twice.
 - Debounce frequent cues (a step every ≥ 0.09 s), or four feet fire four sounds at once.
 - Leave room: drop the music at the impact and let it come back after.
 - Long crackly tails get longer in slow motion; keep them short.

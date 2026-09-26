@@ -102,15 +102,15 @@ export class RoofAct implements Act {
       arrive: { enter: () => clawd.jump({ x: this.X - 420, y: this.a.ridge }, 140), during: () => Object.assign(i(), { arms: 1 }), next: () => clawd.consumeLanding() && 'walk' },
       walk: { during: ({ since }) => Object.assign(i(), { speed: 170 * ramp(since, 0.2, 0.5) }), next: () => clawd.root.x >= A.x - 150 && 'chimney' },
       chimney: { enter: () => clawd.jump(A, 70), next: () => clawd.consumeLanding() && 'wire' },
-      wire: { during: ({ since }) => Object.assign(i(), { speed: 170 * ramp(since, 0.15, 0.4), look: { x: clawd.root.x, y: clawd.root.y + 300 }, surprise: 0.6 }), next: () => clawd.root.x >= mid - 20 && 'boing' },
+      wire: { enter: () => this.c.cue('oh', clawd.root), during: ({ since }) => Object.assign(i(), { speed: 170 * ramp(since, 0.15, 0.4), look: { x: clawd.root.x, y: clawd.root.y + 300 }, surprise: 0.6 }), next: () => clawd.root.x >= mid - 20 && 'boing' },
       boing: {
         enter: () => { clawd.jump({ x: clawd.root.x + 6, y: this.wireAt(clawd.root.x + 6)! }, 70, 2400); kick(); },
         during: () => Object.assign(i(), { arms: 1, happy: 1 }),
-        next: () => { if (!clawd.consumeLanding()) return false; kick(); return ++this.boings >= 2 ? 'across' : 'boing'; },
+        next: () => { if (!clawd.consumeLanding()) return false; kick(); this.c.cue('wire', clawd.root, { data: { n: this.boings + 1 } }); return ++this.boings >= 2 ? 'across' : 'boing'; },
       },
       across: { during: ({ since }) => Object.assign(i(), { speed: 190 * ramp(since, 0.1, 0.35), happy: 1 }), next: () => clawd.root.x >= B.x - 150 && 'hop' },
       hop: { enter: () => clawd.jump(B, 70), next: () => clawd.consumeLanding() && 'moon' },
-      moon: { during: ({ since }) => Object.assign(i(), { look: { x: clawd.root.x + 400, y: clawd.root.y - 900 }, happy: ramp(since, 0.6, 0.7), arms: ramp(since, 0.7, 1.0) }), after: 1.5, then: 'gone' },
+      moon: { enter: () => this.c.cue('moon', clawd.root), during: ({ since }) => Object.assign(i(), { look: { x: clawd.root.x + 400, y: clawd.root.y - 900 }, happy: ramp(since, 0.6, 0.7), arms: ramp(since, 0.7, 1.0) }), after: 1.5, then: 'gone' },
       gone: {},
     });
   }
