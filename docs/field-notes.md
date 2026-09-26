@@ -333,3 +333,22 @@ Clawd, a snowball that grows until it escapes down a hill, and a tree that drops
 - **Weak flames cannot retain full lateral reach.** At about 2 s, low heat reduced tongue height while the wind kept the same horizontal displacement. The result folded into separate horizontal strips. Bound lateral reach smoothly by tongue height, contract the root spacing with heat, limit width by height, and merge each color layer into one paper silhouette. A regression test exercises weak flames in strong wind in both directions.
 - **Anchor terrain samples to a world grid.** Sampling from the camera's changing view edge moved the ridge's polygon vertices during camera moves. Starting at an integer grid coordinate preserves the same contour through pans and zooms.
 - **Material details help more than more objects.** Bark and end grain, soot and ash, chipped stone, canvas seams and fastenings improve close views without changing the action. Keep the clearing behind the gestures open and soften distant vegetation.
+
+## 15. Hands on a rock wall under a turning sky (`hands`)
+
+- **Stencils need contrast before subtlety.** The first negative handprint was invisible: a faint haze of
+  pigment under a night veil, with the figure's cast shadow on top. Full-opacity pigment, a firelight hole in
+  the darkness that reaches the wall, and a lighter cast shadow once the figure stands at the wall fixed it.
+  Check the key prop at the exposure of the shot, not in isolation.
+- **Darkness as a veil with holes reads better than adding light.** `darkness()` covers a region (a wall, a
+  floor) with night and cuts each light out of it (fire, a headlamp spot). Lights then reveal the real paper
+  colors instead of washing them with a glow. Clip it to regions, so characters drawn afterwards keep their
+  own rim light.
+- **Cast shadows from a point light sell a fire.** `paper.castShadow` grows the silhouette away from the
+  fire. Tie the growth to the distance from the wall: huge by the hearth, one with the body at the rock.
+- **A time-lapse needs one clear clock.** Star trails (`drawSky` with `trail` ∝ rotation speed) plus a year
+  counter read at once; fires pulsing and hands appearing then read as generations, not as flicker.
+- **Show the match, don't hide it.** A hand placed straight onto a print covers it. Hover beside it first
+  (the old print visible next to the new hand), then slide in.
+- **Fire cues drown everything.** A crackle bed with `crackle` near 1 multiplies the noise several times; it
+  needs a gain around 0.03–0.05 or it fills the whole spectrum. Read the spectrogram before the render.

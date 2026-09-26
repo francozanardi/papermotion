@@ -123,6 +123,12 @@ Every stage has `this.paper`, the `Paper` renderer.
 - **Geometry and type:** `circlePoly(c, r, n, rx?)`, `tubePoly`. `layoutLetters(ctx, text, font) →
   Letter[]` (`ch`, `x`, `width`, `ascent`, `descent`) animates each letter on its own; `textWidth`.
 - `drawShafts(paper, ShaftSpec, from, to, t)`: light shafts (sun through water or windows).
+- `paper.castShadow(from, grow, draw, { color, blur, alpha })`: the flat shadow a group throws on a backdrop
+  behind it from a point light (a fire, a lamp), grown by `grow` away from `from`. Wrap it in
+  `paper.clip(wall, …)` to keep it on the wall.
+- `darkness(paper, view, { rgb, alpha, lights: Glow[], region? })`: night as a veil over what is drawn,
+  with each light (`{ at, radius, strength, core?, aspect? }`) cut out of it. Clip it to a region (wall,
+  floor) and draw the cast afterwards.
 
 ## scenery
 
@@ -135,6 +141,9 @@ Every stage has `this.paper`, the `Paper` renderer.
     `flora.cloud`;
   - `building({ width, height, colors, window, lit })` for skylines.
   - You can write your own: `(r, x, y, seed) => ({ x, y, draw(paper, sway, t) {…} })`.
+- **Night sky:** `starSky(SkySpec)` builds stars and a Milky Way band around a pole; `drawSky(ctx, sky,
+  { turn, trail, t, twinkle, wash })` draws them turned by `turn` (rad), as arcs when `trail` > 0 (a
+  time-lapse), with `wash` hiding the faintest stars (haze, city light). `skyPoint` places a star.
 - `RidgeSpec` and `drawRidge(paper, spec, from, to, bottom)`: noise hills with bands, patches and a grass
   fringe. `ridgeHeight(spec, x)`.
 
@@ -145,6 +154,8 @@ Every stage has `this.paper`, the `Paper` renderer.
   - `RainSpec { seed, density, period, speed, slant, length, width, rgb, alpha: [a, b], splash? }`.
 - **Water:** `drawRipples(ctx, center, rx, ry, RippleSpec, t)` for rings on puddles.
   `drawDrips(ctx, points, floorY, DripSpec, t)` for water dripping off edges.
+- **Spray and stencils:** `drawSpray(ctx, { seed, center, radius, rgb, amount, mask?, specks?, opacity? })`:
+  pigment blown or sprayed on a surface, stateless in `amount` (0…1); nothing lands inside `mask`.
 - `Particles({ seed, gravity, drag, floor?, flow? })`: short-lived specks: splashes, mud, seeds, bubbles,
   confetti.
   - `.emit(at, count, { angle, spread, speed, life, size, carry? })`, `.update(dt)`,

@@ -90,6 +90,32 @@ export class Paper {
   }
 
   /**
+   * The shadow a group casts on a backdrop behind it, from a point light in front (a fire, a lamp):
+   * the group's silhouette, grown by `grow` away from `from` and filled flat. Shadow puppets on a cave
+   * wall; a figure looming on a curtain. Draw it before the backdrop's foreground and the group itself.
+   */
+  castShadow(from: V, grow: number, draw: () => void, o: { color?: string; blur?: number; alpha?: number } = {}): void {
+    const outer = this.ctx, g = this.scratch.borrow();
+    g.setTransform(outer.getTransform());
+    g.translate(from.x, from.y);
+    g.scale(grow, grow);
+    g.translate(-from.x, -from.y);
+    this.ctx = g;
+    try { draw(); } finally { this.ctx = outer; }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-in';
+    g.fillStyle = o.color ?? 'rgb(12, 6, 10)';
+    g.fillRect(0, 0, g.canvas.width, g.canvas.height);
+    outer.save();
+    outer.setTransform(1, 0, 0, 1, 0, 0);
+    outer.globalAlpha = o.alpha ?? 0.5;
+    outer.filter = `blur(${o.blur ?? 4}px)`;
+    outer.drawImage(g.canvas, 0, 0);
+    outer.restore();
+    this.scratch.release();
+  }
+
+  /**
    * Cut a group of pieces out of ONE sheet of paper. Inside, pieces are drawn flat and merge into a
    * single silhouette (use them for the body, limbs, and markings like a white chest or a lighter near
    * leg); then the silhouette gets the paper treatment once: one drop shadow, one rim light along its

@@ -30,6 +30,7 @@ export { Paper, type PieceOpts, type SheetOpts, type Light } from './paper/Paper
 export { circlePoly, tubePoly } from './paper/geometry';
 export { layoutLetters, textWidth, type Letter } from './paper/type';
 export { drawShafts, type ShaftSpec } from './paper/shafts';
+export { darkness, type Glow } from './paper/darkness';
 
 export { Fire, type FireOpts } from './fx/Fire';
 
@@ -38,6 +39,7 @@ export { drawRain, drawRipples, drawDrips, type RainSpec, type SplashSpec, type 
 export { Particles, type Particle, type ParticleOpts, type Burst } from './fx/Particles';
 export { drawSnow, snowflakes, type SnowSpec, type Flake } from './weather/snow';
 export { Tracks, type Mark, type TracksOpts } from './fx/Tracks';
+export { drawSpray, sprayFleck, type SpraySpec, type Speck } from './fx/spray';
 
 // Audio: sound events from the simulation, parametric voices, scores and a mixer
 export { type Stereo, type FilterType, type Wave, Biquad, Smoother, hz, db, noiseSource, decayEnvelope, gate, wave, softClip } from './audio/dsp';
@@ -51,6 +53,7 @@ export { note, degree, triad, tempo, MODES, type Mode, type Note } from './audio
 export { type RidgeSpec, ridgeHeight, drawRidge } from './scenery/ridge';
 export { flora, scallop } from './scenery/flora';
 export { building } from './scenery/building';
+export { starSky, drawSky, skyPoint, type Sky, type SkySpec, type SkyFrame, type Star, type SkyCloud } from './scenery/stars';
 export { type Prop, type PropMaker, type PropSet, type ScatterSpec, scatter, drawProps } from './scenery/scatter';
 
 // Camera

@@ -29,6 +29,8 @@ export const ridgeHeight = (s: RidgeSpec, x: number): number => s.base + fbm1(x 
 export function drawRidge(paper: Paper, s: RidgeSpec, from: number, to: number, bottom: number): void {
   const pts: V[] = [];
   const step = Math.max(12, 0.03 / s.freq);
+  // Samples sit on a world grid, so the outline keeps its shape while the camera pans or zooms.
+  from = Math.floor(from / step) * step;
   for (let x = from; x <= to + step; x += step) pts.push({ x, y: ridgeHeight(s, x) });
   pts.push({ x: to + step, y: bottom }, { x: from, y: bottom });
   paper.piece(pts, s.color, { seed: 600 + s.seed, tear: s.tear ?? 3, shadow: s.shadow ?? 12 });
