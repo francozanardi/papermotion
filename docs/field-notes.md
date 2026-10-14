@@ -23,6 +23,10 @@ Read this before making a scene. Each note is a mistake we made, or a fix that w
 - **Measure "jumps" numerically.** Plants looked jittery. We logged how far every point moved per frame and
   flagged anything over 12 px. That found the cause (hard colliders, see §3) and proved the fix: zero jumps.
 - **Frames go in order.** The simulation only moves forward. `Stage.renderFrame` throws if you go back.
+- **`draw` only draws.** `pnpm render` draws on several pages at once, and each page simulates through the
+  frames of the others without drawing them. Anything that changes the story in `draw` (spawning a particle,
+  firing a cue, drawing from a shared `rng`) makes the video depend on which frames were drawn. Do it in
+  `update` / `lateUpdate`, or derive it statelessly from the time and a seed.
 
 ## 2. Engine versus content
 
@@ -172,6 +176,14 @@ Read this before making a scene. Each note is a mistake we made, or a fix that w
 - Sheets cost a few extra offscreen passes each. The cat scene went from about 25 s to about 45 s to render
   10 s of video. That is fine offline. If it matters, restrict the passes to a bounding box (sheets already do)
   and avoid sheets on tiny background props.
+- Composites like `destination-in`, `source-in` and `copy` touch every pixel of the canvas, not just where
+  you draw: they clear everything outside the source. On a frame-sized offscreen canvas that is a full-frame
+  pass each, and the sheets' rim, texture and edge passes made seven of them per sheet, about half the
+  render time. Clip to the box first (`Scratch.borrow(box)` does). `source-atop`, `destination-out` and
+  `overlay` stay where the source is.
+- The renders run in headless Chromium's software canvas, single-threaded per page: `pnpm render` draws on
+  one page per core (`--jobs N` to change it). Profile a frame with `performance.now()` around
+  `renderFrame` plus a 1-pixel `getImageData` (drawing is deferred until something reads the canvas).
 - Drop shadows with blur on every small piece add up. Background props can use smaller shadows.
 
 ## 9. Multi-shot stories (`rain`)

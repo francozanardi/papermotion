@@ -24,8 +24,8 @@ export interface StageHooks {
 }
 
 /**
- * Put a stage on a page. It loops in real time, and always exposes `StageHooks` on `window`
- * so a headless browser can pull frames and probes.
+ * Put a stage on a page. It loops in real time, dropping frames it can't draw in time, and always
+ * exposes `StageHooks` on `window` so a headless browser can pull frames and probes.
  */
 export function mount(canvas: HTMLCanvasElement, make: (canvas: HTMLCanvasElement) => Stage, o: MountOptions = {}): StageHooks {
   let stage = make(canvas);
@@ -48,16 +48,21 @@ export function mount(canvas: HTMLCanvasElement, make: (canvas: HTMLCanvasElemen
   return hooks;
 }
 
+/**
+ * Real-time playback: show the frame due now. When a frame takes longer to draw than its slot, the
+ * frames in between are simulated but not drawn, so the film keeps its pace instead of slowing down.
+ */
 function play(canvas: HTMLCanvasElement, current: () => Stage, hooks: StageHooks): void {
-  let n = 0;
-  const loop = () => {
+  const { fps, frames } = hooks.meta;
+  let start = performance.now(), shown = -1;
+  const loop = (now: number) => {
     if (!canvas.isConnected) return;
-    current().renderFrame(n);
-    n = (n + 1) % hooks.meta.frames;
-    if (n === 0) hooks.reset();
-    setTimeout(loop, 1000 / hooks.meta.fps);
+    let n = Math.floor(((now - start) / 1000) * fps);
+    if (n >= frames) { hooks.reset(); start = now; shown = -1; n = 0; }
+    if (n !== shown) { current().renderFrame(n); shown = n; }
+    requestAnimationFrame(loop);
   };
-  loop();
+  requestAnimationFrame(loop);
 }
 
 function base64(bytes: Uint8Array): string {

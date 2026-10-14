@@ -14,8 +14,8 @@ pnpm typecheck && pnpm test
 - Open the JPEGs and look at them. Crop or grab more frames around a problem instead of guessing.
 - `pnpm dev` serves `/?example=<name>` (the rendered MP4) and `&live` (the browser run, only a
   sketchpad).
-- **Faster:** `grab --probe` takes seconds. A full render takes minutes (about 3–5 for 30 s at 1080p
-  with many sheets).
+- **Faster:** `grab --probe` takes seconds. A full render takes minutes for heavy scenes; it draws on
+  one page per core (`pnpm render <name> --jobs N` to change that), so keep `draw` free of side effects.
 
 ## Order of checks
 

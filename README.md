@@ -74,7 +74,7 @@ human asked for a few small corrections (a sound too loud, a timing, a framing).
   reach, beats), not from keyframed positions. Sound comes from the same events: a footstep sounds where
   a foot lands.
 - **Deterministic and offline.** Fixed timestep, seeded randomness. Videos are rendered frame by frame in
-  headless Chromium and piped to ffmpeg, so they come out smooth however heavy a frame is.
+  headless Chromium, one page per core, and piped to ffmpeg, so they come out smooth however heavy a frame is.
 - **Agents check their own work.** Probes print the state of the story, frame grabs and contact sheets
   show the picture, and a spectrogram with loudness numbers stands in for ears.
 

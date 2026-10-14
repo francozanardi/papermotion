@@ -331,7 +331,7 @@ export class Paper {
    * from it (`toward` -1: core shadow): the silhouette minus itself shifted along the light.
    */
   private sheetBand(g: CanvasRenderingContext2D, b: Box, band: { color: string; width: number }, scale: number, toward: 1 | -1): void {
-    const l = this.light, n = Math.hypot(l.x, l.y) || 1, r = this.scratch.borrow(), d = toward * band.width * scale;
+    const l = this.light, n = Math.hypot(l.x, l.y) || 1, r = this.scratch.borrow(b), d = toward * band.width * scale;
     r.fillStyle = band.color;
     r.fillRect(b.x, b.y, b.w, b.h);
     r.globalCompositeOperation = 'destination-in';
@@ -345,7 +345,7 @@ export class Paper {
   }
 
   private sheetTexture(g: CanvasRenderingContext2D, b: Box, alpha: number, m: DOMMatrix, anchor?: V): void {
-    const t = this.scratch.borrow();
+    const t = this.scratch.borrow(b);
     t.setTransform(m);
     t.translate(anchor?.x ?? 0, anchor?.y ?? 0);
     t.fillStyle = this.texture;
@@ -366,7 +366,7 @@ export class Paper {
 
   /** Cut edge on a merged sheet: the silhouette minus itself eroded by ~1.4px. */
   private sheetEdge(g: CanvasRenderingContext2D, b: Box, scale: number): void {
-    const k = Math.max(1, 1.2 * scale), eroded = this.scratch.borrow(), ring = this.scratch.borrow();
+    const k = Math.max(1, 1.2 * scale), eroded = this.scratch.borrow(b), ring = this.scratch.borrow(b);
     blit(eroded, g, b);
     eroded.globalCompositeOperation = 'destination-in';
     for (const [dx, dy] of [[k, 0], [-k, 0], [0, k], [0, -k]]) blit(eroded, g, b, dx, dy);
