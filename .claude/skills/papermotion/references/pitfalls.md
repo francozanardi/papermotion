@@ -54,6 +54,7 @@ Each of these happened. Check this list when something looks wrong.
 | A render dies half way with "Execution context was destroyed" | The page reloaded | The scripts disable HMR and watching; still, don't edit while a render runs |
 | Motion looks jerky in the browser | The live view drops frames | Judge only the rendered MP4 |
 | "Frames must be rendered in order" | Asked for an earlier frame | Grab times in increasing order |
+| The render differs from the grabs, or from one render to the next | `draw` changes state (spawns, cues, a shared `rng`) and the renderer skips drawing frames | Change state only in `update` / `lateUpdate` |
 
 ## Story
 

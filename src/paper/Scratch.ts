@@ -1,3 +1,5 @@
+import { pixelScale, setPixelScale } from './resolution';
+
 /** A rectangle in device pixels. */
 export interface Box { x: number; y: number; w: number; h: number }
 
@@ -6,26 +8,40 @@ export interface Box { x: number; y: number; w: number; h: number }
  * (translucent layers, merged sheets and their effects).
  */
 export class Scratch {
-  private readonly pool: HTMLCanvasElement[] = [];
+  private readonly pool: CanvasRenderingContext2D[] = [];
   private used = 0;
 
-  constructor(private readonly size: () => { width: number; height: number }) {}
+  /** `frame` is the canvas the scratch canvases match, in size and pixel scale. */
+  constructor(private readonly frame: () => HTMLCanvasElement) {}
 
-  /** A cleared canvas with an identity transform. Give it back with `release`, last borrowed first. */
-  borrow(): CanvasRenderingContext2D {
-    const canvas = (this.pool[this.used++] ??= document.createElement('canvas'));
-    const { width, height } = this.size();
-    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-    const g = canvas.getContext('2d')!;
+  /**
+   * A cleared canvas with an identity transform. Give it back with `release`, last borrowed first.
+   * With `clip`, only that box is cleared and everything drawn stays inside it. Use it for passes
+   * confined to a box: composites like 'destination-in' and 'source-in' otherwise touch (and clear)
+   * every pixel of the frame-sized canvas, which in a software canvas costs a full-frame pass each.
+   */
+  borrow(clip?: Box): CanvasRenderingContext2D {
+    const frame = this.frame(), { width, height } = frame;
+    const g = (this.pool[this.used++] ??= document.createElement('canvas').getContext('2d')!);
+    if (g.canvas.width !== width || g.canvas.height !== height) { g.canvas.width = width; g.canvas.height = height; }
+    setPixelScale(g.canvas, pixelScale({ canvas: frame }));
+    g.save();
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalAlpha = 1;
     g.globalCompositeOperation = 'source-over';
-    g.clearRect(0, 0, width, height);
+    if (clip) {
+      g.beginPath();
+      g.rect(clip.x, clip.y, clip.w, clip.h);
+      g.clip();
+      g.clearRect(clip.x, clip.y, clip.w, clip.h);
+    } else {
+      g.clearRect(0, 0, width, height);
+    }
     return g;
   }
 
   release(count = 1): void {
-    this.used -= count;
+    for (let i = 0; i < count; i++) this.pool[--this.used].restore();
   }
 }
 

@@ -6,6 +6,7 @@
 pnpm grab <name> 0.5 2 4.2 7 --probe   # prints the scene's probe() at each time (seconds, increasing)
 pnpm grab <name> 0.5 2 4.2 7           # + frames out/grab/<name>_<t>.jpg and out/grab/<name>_sheet.jpg
 pnpm render <name>                     # the real video: out/<name>.mp4 (minutes for heavy scenes)
+pnpm render <name> --draft             # half resolution, ~3× faster: out/<name>_draft.mp4, to judge motion
 pnpm sheet <name> [fps=2] [from=0] [seconds=10]   # out/<name>_sheet_<from>.jpg from the video
 pnpm listen <name>                     # soundtrack only: cue list, loudness, out/<name>_audio.png
 pnpm typecheck && pnpm test
@@ -14,8 +15,8 @@ pnpm typecheck && pnpm test
 - Open the JPEGs and look at them. Crop or grab more frames around a problem instead of guessing.
 - `pnpm dev` serves `/?example=<name>` (the rendered MP4) and `&live` (the browser run, only a
   sketchpad).
-- **Faster:** `grab --probe` takes seconds. A full render takes minutes (about 3–5 for 30 s at 1080p
-  with many sheets).
+- **Faster:** `grab --probe` takes seconds. A full render takes minutes for heavy scenes; it draws on
+  one page per core (`pnpm render <name> --jobs N` to change that), so keep `draw` free of side effects.
 
 ## Order of checks
 

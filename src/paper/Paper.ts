@@ -1,6 +1,7 @@
 import { type V, smooth, smoothClosed } from '../core/math';
 import { noise1 } from '../core/random';
 import { bounds, resample, tubePoly } from './geometry';
+import { pixelScale, scaleFilter } from './resolution';
 import { type Box, Scratch, blit } from './Scratch';
 import { makeTexture } from './texture';
 
@@ -35,6 +36,9 @@ export interface SheetOpts {
 }
 
 
+/** The settings of a `Paper` a scene may change while drawing (see `Paper.style`). */
+export interface PaperStyle { light: Light; edgeColor: string; shadowColor: string }
+
 /** Scene light: direction the light travels (unit-ish vector), e.g. {x:-1,y:0.2} for a low sun on the right. */
 export interface Light { x: number; y: number }
 
@@ -45,6 +49,7 @@ export interface Light { x: number; y: number }
 export class Paper {
   private readonly texture: CanvasPattern;
   private readonly scratch: Scratch;
+  private readonly main: CanvasRenderingContext2D;
   private ctx: CanvasRenderingContext2D;
   /** Inside a sheet, pieces are drawn flat and their device-space bounds are collected here. */
   private flat: Box | null = null;
@@ -59,9 +64,21 @@ export class Paper {
   shadowColor = 'rgba(18, 10, 28, 0.38)';
 
   constructor(main: CanvasRenderingContext2D) {
-    this.ctx = main;
+    this.ctx = this.main = main;
     this.texture = main.createPattern(makeTexture(512, 11), 'repeat')!;
     this.scratch = new Scratch(() => main.canvas);
+  }
+
+  /** The current light, edge and shadow colors. */
+  style(): PaperStyle {
+    return { light: { ...this.light }, edgeColor: this.edgeColor, shadowColor: this.shadowColor };
+  }
+
+  /** Put back settings taken with `style()`. */
+  restyle(s: PaperStyle): void {
+    this.light = { ...s.light };
+    this.edgeColor = s.edgeColor;
+    this.shadowColor = s.shadowColor;
   }
 
   /** The context pieces are currently drawn into (for gradients). */
@@ -83,7 +100,7 @@ export class Paper {
     outer.setTransform(1, 0, 0, 1, 0, 0);
     outer.globalAlpha = alpha;
     if (blend) outer.globalCompositeOperation = blend;
-    outer.filter = filter;
+    outer.filter = scaleFilter(filter, pixelScale(this.main));
     outer.drawImage(g.canvas, 0, 0);
     outer.restore();
     this.scratch.release();
@@ -109,7 +126,7 @@ export class Paper {
     outer.save();
     outer.setTransform(1, 0, 0, 1, 0, 0);
     outer.globalAlpha = o.alpha ?? 0.5;
-    outer.filter = `blur(${o.blur ?? 4}px)`;
+    outer.filter = `blur(${(o.blur ?? 4) * pixelScale(this.main)}px)`;
     outer.drawImage(g.canvas, 0, 0);
     outer.restore();
     this.scratch.release();
@@ -148,9 +165,10 @@ export class Paper {
     outer.setTransform(1, 0, 0, 1, 0, 0);
     outer.globalAlpha = o.alpha ?? 1;
     if (o.shadow !== 0) {
+      const s = (o.shadow ?? 9) * pixelScale(this.main);
       outer.shadowColor = this.shadowColor;
-      outer.shadowBlur = o.shadow ?? 9;
-      outer.shadowOffsetY = (o.shadow ?? 9) * 0.45;
+      outer.shadowBlur = s;
+      outer.shadowOffsetY = s * 0.45;
     }
     blit(outer, g, b);
     outer.restore();
@@ -199,9 +217,10 @@ export class Paper {
 
     ctx.save();
     if (o.shadow !== 0) {
+      const s = (o.shadow ?? 9) * pixelScale(this.main);
       ctx.shadowColor = this.shadowColor;
-      ctx.shadowBlur = o.shadow ?? 9;
-      ctx.shadowOffsetY = (o.shadow ?? 9) * 0.45;
+      ctx.shadowBlur = s;
+      ctx.shadowOffsetY = s * 0.45;
     }
     ctx.fillStyle = fill;
     ctx.fill(path);
@@ -331,7 +350,7 @@ export class Paper {
    * from it (`toward` -1: core shadow): the silhouette minus itself shifted along the light.
    */
   private sheetBand(g: CanvasRenderingContext2D, b: Box, band: { color: string; width: number }, scale: number, toward: 1 | -1): void {
-    const l = this.light, n = Math.hypot(l.x, l.y) || 1, r = this.scratch.borrow(), d = toward * band.width * scale;
+    const l = this.light, n = Math.hypot(l.x, l.y) || 1, r = this.scratch.borrow(b), d = toward * band.width * scale;
     r.fillStyle = band.color;
     r.fillRect(b.x, b.y, b.w, b.h);
     r.globalCompositeOperation = 'destination-in';
@@ -345,7 +364,7 @@ export class Paper {
   }
 
   private sheetTexture(g: CanvasRenderingContext2D, b: Box, alpha: number, m: DOMMatrix, anchor?: V): void {
-    const t = this.scratch.borrow();
+    const t = this.scratch.borrow(b);
     t.setTransform(m);
     t.translate(anchor?.x ?? 0, anchor?.y ?? 0);
     t.fillStyle = this.texture;
@@ -366,7 +385,7 @@ export class Paper {
 
   /** Cut edge on a merged sheet: the silhouette minus itself eroded by ~1.4px. */
   private sheetEdge(g: CanvasRenderingContext2D, b: Box, scale: number): void {
-    const k = Math.max(1, 1.2 * scale), eroded = this.scratch.borrow(), ring = this.scratch.borrow();
+    const k = Math.max(1, 1.2 * scale), eroded = this.scratch.borrow(b), ring = this.scratch.borrow(b);
     blit(eroded, g, b);
     eroded.globalCompositeOperation = 'destination-in';
     for (const [dx, dy] of [[k, 0], [-k, 0], [0, k], [0, -k]]) blit(eroded, g, b, dx, dy);

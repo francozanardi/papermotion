@@ -43,7 +43,7 @@ with `scripts/template.ts`; the starter files are in `packages/create-papermotio
 ## Commands
 
 ```bash
-pnpm render sea   # offline render → out/sea.mp4 (or: all)
+pnpm render sea   # offline render → out/sea.mp4 (or: all); --draft for half resolution, ~3× faster
 pnpm dev          # vite on :5299 — /?example=sea plays the render, &live runs it in the browser
 pnpm grab sea 1 4 7 [--probe]   # frames and/or probes at those seconds → out/grab/
 pnpm sheet sea                  # contact sheet of out/sea.mp4

@@ -25,6 +25,7 @@ export class EmbersScene extends Stage {
   constructor(canvas:HTMLCanvasElement){
     super(canvas,{duration:30});
     this.paper.edgeColor='rgba(240,215,180,0.14)';
+    this.paper.light={x:0,y:-1}; // the hearth's light: the era scenery is drawn before each frame sets its own
     this.world.ground=()=>952;
     this.world.surfaces.push(new Surface([{x:900,y:925},{x:1040,y:930}]));
     this.beats=new Beats<Beat>('shelter',{

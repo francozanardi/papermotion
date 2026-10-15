@@ -16,7 +16,14 @@ export function findChromium(): string {
   throw new Error('No Chromium found: run `npx playwright install chromium` or set CHROMIUM_PATH.');
 }
 
-export interface Session { server: ViteDevServer; browser: Browser; page: Page; base: string; close(): Promise<void> }
+export interface Session {
+  server: ViteDevServer; browser: Browser; page: Page; base: string;
+  /** Another page in its own browser context, so it gets its own renderer process (and CPU core). */
+  newPage(): Promise<Page>;
+  close(): Promise<void>;
+}
+
+const viewport = { width: 1920, height: 1080 };
 
 export async function open(): Promise<Session> {
   // No HMR and no file watching: editing sources while a script runs must not reload the page.
@@ -24,15 +31,16 @@ export async function open(): Promise<Session> {
   await server.listen();
   const base = server.resolvedUrls!.local[0].replace(/\/$/, '');
   const browser = await chromium.launch({ executablePath: findChromium() });
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
-  return { server, browser, page, base, close: async () => { await browser.close(); await server.close(); } };
+  const newPage = async () => (await browser.newContext({ viewport })).newPage();
+  const page = await newPage();
+  return { server, browser, page, base, newPage, close: async () => { await browser.close(); await server.close(); } };
 }
 
-/** Load an example paused, ready for `frame(n)` / `probe(n)`; throws on page errors. */
-export async function load(page: Page, base: string, name: string, errors: string[]): Promise<{ fps: number; frames: number }> {
+/** Load an example paused, ready for `frame(n)` / `probe(n)`; throws on page errors. `scale` < 1 loads a draft. */
+export async function load(page: Page, base: string, name: string, errors: string[], scale = 1): Promise<{ fps: number; frames: number }> {
   page.removeAllListeners('pageerror');
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(`${base}/?example=${name}&headless`);
+  await page.goto(`${base}/?example=${name}&headless${scale !== 1 ? `&scale=${scale}` : ''}`);
   await page.waitForFunction(() => (globalThis as { ready?: boolean }).ready || document.querySelector('p'), null, { timeout: 60_000 });
   if (errors.length) throw new Error(`${name}: ${errors.join('; ')}`);
   const meta = await page.evaluate(() => (globalThis as unknown as { meta?: { fps: number; frames: number } }).meta);

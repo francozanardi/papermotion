@@ -1,5 +1,6 @@
 import { type V, clamp, easeInOut } from '../core/math';
 import { noise1 } from '../core/random';
+import { frameSize, pixelScale, screenSpace } from '../paper/resolution';
 
 /**
  * Scene-to-scene transitions drawn in screen space, over a frame that already shows the outgoing
@@ -20,7 +21,7 @@ export interface WipeOpts {
 /** The old picture is torn away like a page, revealing the next one underneath. */
 export function tearWipe(ctx: CanvasRenderingContext2D, u: number, next: () => void, o: WipeOpts): void {
   if (u <= 0) return;
-  const { width: W, height: H } = ctx.canvas;
+  const { width: W, height: H } = frameSize(ctx);
   const a = o.angle ?? 0, d = { x: Math.cos(a), y: Math.sin(a) }, n = { x: -d.y, y: d.x };
   const reach = Math.hypot(W, H) / 2 + 80, c = { x: W / 2, y: H / 2 };
   const s = -reach + 2 * reach * easeInOut(clamp(u));
@@ -38,7 +39,7 @@ export function tearWipe(ctx: CanvasRenderingContext2D, u: number, next: () => v
 /** An iris of torn paper opening from `center` (a moon, a porthole, an eye). */
 export function irisWipe(ctx: CanvasRenderingContext2D, u: number, center: V, next: () => void, o: WipeOpts): void {
   if (u <= 0) return;
-  const { width: W, height: H } = ctx.canvas;
+  const { width: W, height: H } = frameSize(ctx);
   const far = Math.max(Math.hypot(center.x, center.y), Math.hypot(W - center.x, center.y), Math.hypot(center.x, H - center.y), Math.hypot(W - center.x, H - center.y));
   const r = (far + 60) * clamp(u) ** 1.6, tear = (o.tear ?? 18) * Math.min(1, r / 200);
   const ring: V[] = [];
@@ -51,7 +52,7 @@ export function irisWipe(ctx: CanvasRenderingContext2D, u: number, center: V, ne
   ctx.strokeStyle = o.paper ?? '#f4ecdd';
   ctx.lineWidth = 7;
   ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-  ctx.shadowBlur = 12;
+  ctx.shadowBlur = 12 * pixelScale(ctx);
   ctx.beginPath();
   ring.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
   ctx.closePath();
@@ -61,7 +62,7 @@ export function irisWipe(ctx: CanvasRenderingContext2D, u: number, center: V, ne
 
 function reveal(ctx: CanvasRenderingContext2D, region: V[], next: () => void): void {
   ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  screenSpace(ctx);
   const path = new Path2D();
   region.forEach((p, i) => (i ? path.lineTo(p.x, p.y) : path.moveTo(p.x, p.y)));
   path.closePath();
@@ -73,7 +74,7 @@ function reveal(ctx: CanvasRenderingContext2D, region: V[], next: () => void): v
 /** The white fibrous strip on the torn side, with a soft shadow cast onto the revealed picture. */
 function paperEdge(ctx: CanvasRenderingContext2D, edge: V[], d: V, o: WipeOpts): void {
   ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  screenSpace(ctx);
   const strip = new Path2D();
   edge.forEach((p, i) => (i ? strip.lineTo(p.x, p.y) : strip.moveTo(p.x, p.y)));
   for (let i = edge.length - 1; i >= 0; i--) {
@@ -82,9 +83,10 @@ function paperEdge(ctx: CanvasRenderingContext2D, edge: V[], d: V, o: WipeOpts):
   }
   strip.closePath();
   ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-  ctx.shadowBlur = 16;
-  ctx.shadowOffsetX = -d.x * 6;
-  ctx.shadowOffsetY = -d.y * 6 + 3;
+  const px = pixelScale(ctx);
+  ctx.shadowBlur = 16 * px;
+  ctx.shadowOffsetX = -d.x * 6 * px;
+  ctx.shadowOffsetY = (-d.y * 6 + 3) * px;
   ctx.fillStyle = o.paper ?? '#f4ecdd';
   ctx.fill(strip);
   ctx.restore();

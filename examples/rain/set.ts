@@ -1,5 +1,6 @@
 import {
-  type Paper, type PropMaker, type RidgeSpec, type V, building, circlePoly, drawRipples, flora, hash, noise1, rng, scatter,
+  type Paper, type PropMaker, type RidgeSpec, type V, building, circlePoly, drawRipples, flora, frameSize, hash, noise1, rng,
+  scatter,
 } from '../../src';
 
 /** The road the whole story runs along: a field with a barbed-wire fence, then the edge of town and the bus stop. */
@@ -44,7 +45,7 @@ export const HILLS: RidgeSpec = { seed: 86, base: 700, amp: 60, freq: 0.0012, co
 
 /** Sky: a heavy overcast that lightens toward the horizon; lightning lights the clouds from within. */
 export function drawSky(ctx: CanvasRenderingContext2D, flash: number): void {
-  const { width: w, height: h } = ctx.canvas;
+  const { width: w, height: h } = frameSize(ctx);
   const g = ctx.createLinearGradient(0, 0, 0, h);
   const lift = Math.round(flash * 80);
   const gray = (v: number) => `rgb(${v + lift}, ${v + lift}, ${v + lift + 3})`;

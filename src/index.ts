@@ -26,11 +26,12 @@ export { School, type SchoolSpec, type Member } from './motion/School';
 export { Leap } from './motion/Leap';
 
 // Paper rendering
-export { Paper, type PieceOpts, type SheetOpts, type Light } from './paper/Paper';
+export { Paper, type PaperStyle, type PieceOpts, type SheetOpts, type Light } from './paper/Paper';
 export { circlePoly, tubePoly } from './paper/geometry';
 export { layoutLetters, textWidth, type Letter } from './paper/type';
 export { drawShafts, type ShaftSpec } from './paper/shafts';
 export { darkness, type Glow } from './paper/darkness';
+export { frameSize, pixelScale, screenSpace } from './paper/resolution';
 
 export { Fire, type FireOpts } from './fx/Fire';
 

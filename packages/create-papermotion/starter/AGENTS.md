@@ -33,7 +33,7 @@ direction, pitfalls, sound and inspection.
 ## Commands
 
 ```bash
-pnpm render hello              # offline render → out/hello.mp4 (or: all)
+pnpm render hello              # offline render → out/hello.mp4 (or: all); --draft: half size, ~3× faster
 pnpm dev                       # vite on :5299 — /?example=hello plays the render, &live runs it live
 pnpm grab hello 1 2 3 [--probe]  # frames and/or probes at those seconds → out/grab/
 pnpm sheet hello               # contact sheet of out/hello.mp4

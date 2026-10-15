@@ -1,6 +1,7 @@
 import type { Stereo } from '../audio/dsp';
 import { type CueOpts, SoundLog } from '../audio/SoundLog';
-import { Paper } from '../paper/Paper';
+import { Paper, type PaperStyle } from '../paper/Paper';
+import { pixelScale } from '../paper/resolution';
 import { World } from '../physics/World';
 
 export interface StageOptions {
@@ -33,6 +34,8 @@ export abstract class Stage {
   readonly fps: number;
   readonly duration: number;
   readonly paper: Paper;
+  /** Device pixels per frame pixel: 1, or less in a draft. */
+  readonly scale: number;
   readonly world = new World();
   /** Sound events and levels the simulation produced, for the scene's `soundtrack`. */
   readonly sound = new SoundLog();
@@ -45,6 +48,8 @@ export abstract class Stage {
   /** Scene time shown by each video frame. */
   private readonly frameTimes: number[] = [];
   private readonly rate: (t: number) => number;
+  /** The paper's styling as the scene set it up, restored before each frame. */
+  private paperStyle?: PaperStyle;
 
   constructor(readonly canvas: HTMLCanvasElement, o: StageOptions) {
     this.width = o.width ?? 1920;
@@ -53,8 +58,10 @@ export abstract class Stage {
     this.duration = o.duration;
     this.dt = 1 / (this.fps * (o.substeps ?? 2));
     this.prerollSteps = Math.round((o.preroll ?? 0.6) / this.dt);
-    canvas.width = this.width;
-    canvas.height = this.height;
+    // A draft canvas (see `MountOptions.scale`) holds fewer pixels; scenes still draw in frame pixels.
+    this.scale = pixelScale({ canvas });
+    canvas.width = Math.round((this.width * this.scale) / 2) * 2;
+    canvas.height = Math.round((this.height * this.scale) / 2) * 2;
     this.ctx = canvas.getContext('2d')!;
     this.paper = new Paper(this.ctx);
     const rate = (this.rate = o.rate ?? (() => 1));
@@ -77,8 +84,12 @@ export abstract class Stage {
    */
   renderFrame(n: number): void {
     this.advance(n);
+    // Every frame starts from the same canvas and paper state, whatever the last frame drawn left
+    // behind, so a frame looks the same whether or not the frames before it were drawn.
+    this.ctx.reset();
+    this.paper.restyle(this.paperStyle ??= this.paper.style());
     this.paper.setFrame(n);
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
     this.draw(this.time, n);
   }
 

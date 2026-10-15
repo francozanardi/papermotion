@@ -103,6 +103,7 @@ Follow this loop. Iterating on numbers and single frames is cheap; full renders 
 pnpm grab <name> 1 3.5 6 9 --probe   # numbers only: beats, positions (seconds, increasing)
 pnpm grab <name> 1 3.5 6 9           # frames → out/grab/<name>_<t>.jpg + a contact sheet
 pnpm render <name>                   # full offline render → out/<name>.mp4
+pnpm render <name> --draft           # half resolution, ~3× faster → out/<name>_draft.mp4
 pnpm sheet <name> 2 0 10             # contact sheet of the video (fps, from, seconds)
 pnpm listen <name>                   # soundtrack only (seconds): wav, spectrogram, loudness, cue list
 pnpm typecheck && pnpm test
