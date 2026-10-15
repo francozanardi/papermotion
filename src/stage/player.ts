@@ -1,9 +1,15 @@
 import { encodeWav } from '../audio/Mixer';
+import { setPixelScale } from '../paper/resolution';
 import type { Stage } from './Stage';
 
 export interface MountOptions {
   /** Don't play; wait for frames to be requested (capture). */
   headless?: boolean;
+  /**
+   * Draft resolution: canvas pixels per frame pixel. 0.5 draws a quarter of the pixels, about three
+   * times faster; the scene is unchanged. Default 1.
+   */
+  scale?: number;
 }
 
 /** What a mounted page exposes on `window` for capture and inspection. */
@@ -28,6 +34,7 @@ export interface StageHooks {
  * exposes `StageHooks` on `window` so a headless browser can pull frames and probes.
  */
 export function mount(canvas: HTMLCanvasElement, make: (canvas: HTMLCanvasElement) => Stage, o: MountOptions = {}): StageHooks {
+  setPixelScale(canvas, o.scale ?? 1);
   let stage = make(canvas);
   const hooks: StageHooks = {
     meta: { fps: stage.fps, frames: stage.frames, width: stage.width, height: stage.height },

@@ -7,6 +7,7 @@
  *   pnpm render kite sea
  *   pnpm render all
  *   pnpm render sea --jobs 2  → pages drawing in parallel (default: one per core, up to 8)
+ *   pnpm render sea --draft   → out/sea_draft.mp4 at half resolution, about three times faster
  *
  * Scenes with a `soundtrack` get it mixed and muxed in (and out/<name>.wav, out/<name>_audio.png).
  *
@@ -26,7 +27,8 @@ const OUT = 'out';
 /** H.264 settings for the best encoder this ffmpeg has. */
 function encoder(): string[] {
   const list = execFileSync('ffmpeg', ['-hide_banner', '-encoders'], { encoding: 'utf8' });
-  if (list.includes('libx264')) return ['-c:v', 'libx264', '-crf', '17', '-preset', 'slow'];
+  // 'medium' encodes about a quarter faster than 'slow' for a file ~5% larger at the same quality.
+  if (list.includes('libx264')) return ['-c:v', 'libx264', '-crf', '17', '-preset', 'medium'];
   if (list.includes('libopenh264')) return ['-c:v', 'libopenh264', '-b:v', '18M'];
   throw new Error('ffmpeg has no H.264 encoder (libx264 or libopenh264).');
 }
@@ -37,12 +39,12 @@ function encoder(): string[] {
  * simulates through the blocks of the others without drawing them (cheap), so every frame comes out
  * exactly as a single page would draw it. Frames are written to ffmpeg in order as they arrive.
  */
-async function render(base: string, pages: Page[], name: string, codec: string[]): Promise<void> {
+async function render(base: string, pages: Page[], name: string, codec: string[], scale: number): Promise<void> {
   const errors = pages.map((): string[] => []);
-  const [{ fps, frames }] = await Promise.all(pages.map((p, i) => load(p, base, name, errors[i])));
+  const [{ fps, frames }] = await Promise.all(pages.map((p, i) => load(p, base, name, errors[i], scale)));
   const block = fps, blocks = Math.ceil(frames / block), jobs = Math.min(pages.length, blocks);
 
-  const file = join(OUT, `${name}.mp4`);
+  const file = join(OUT, `${name}${scale !== 1 ? '_draft' : ''}.mp4`);
   const ffmpeg = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
     ...codec, '-g', String(fps), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', file], { stdio: ['pipe', 'inherit', 'inherit'] });
   const done = new Promise<number | null>(resolve => ffmpeg.on('close', resolve));
@@ -97,7 +99,8 @@ async function render(base: string, pages: Page[], name: string, codec: string[]
 const argv = process.argv.slice(2), j = argv.findIndex(a => a === '-j' || a === '--jobs');
 const jobs = j >= 0 ? Number(argv[j + 1]) : Math.min(8, availableParallelism());
 if (!(jobs >= 1)) throw new Error('--jobs needs a number of pages, e.g. --jobs 4');
-const args = argv.filter((_, i) => j < 0 || (i !== j && i !== j + 1));
+const scale = argv.includes('--draft') ? 0.5 : 1;
+const args = argv.filter((a, i) => a !== '--draft' && (j < 0 || (i !== j && i !== j + 1)));
 const names = args.includes('all') || !args.length ? Object.keys(EXAMPLES) : args;
 const unknown = names.filter(n => !EXAMPLES[n]);
 if (unknown.length) throw new Error(`Unknown example(s): ${unknown.join(', ')}. Try: ${Object.keys(EXAMPLES).join(', ')}, all`);
@@ -107,7 +110,7 @@ const codec = encoder();
 const session = await open();
 try {
   const pages = [session.page, ...await Promise.all(Array.from({ length: jobs - 1 }, () => session.newPage()))];
-  for (const name of names) await render(session.base, pages, name, codec);
+  for (const name of names) await render(session.base, pages, name, codec, scale);
 } finally {
   await session.close();
 }

@@ -5,6 +5,7 @@ import { EXAMPLES } from './catalog';
  * ?example=<name>            play the rendered video (out/<name>.mp4, made by `pnpm render <name>`)
  * ?example=<name>&live       run the scene live in the browser (quick iteration; may stutter on heavy scenes)
  * ?example=<name>&headless   live but paused: frames are pulled through window.frame(n) (used by the renderer)
+ * &scale=0.5                 with live or headless: a draft at that fraction of the resolution
  */
 const params = new URLSearchParams(location.search);
 const name = params.get('example') ?? Object.keys(EXAMPLES)[0];
@@ -15,7 +16,7 @@ if (!EXAMPLES[name]) {
 } else if (params.has('live') || params.has('headless')) {
   const make = await EXAMPLES[name]();
   await Promise.all(['300 64px Montserrat', '800 64px Montserrat'].map(f => document.fonts.load(f)));
-  mount(canvas, c => make(c, params), { headless: params.has('headless') });
+  mount(canvas, c => make(c, params), { headless: params.has('headless'), scale: Number(params.get('scale') ?? 1) || 1 });
 } else {
   playVideo(`/out/${name}.mp4`);
 }

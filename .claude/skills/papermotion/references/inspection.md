@@ -6,6 +6,7 @@
 pnpm grab <name> 0.5 2 4.2 7 --probe   # prints the scene's probe() at each time (seconds, increasing)
 pnpm grab <name> 0.5 2 4.2 7           # + frames out/grab/<name>_<t>.jpg and out/grab/<name>_sheet.jpg
 pnpm render <name>                     # the real video: out/<name>.mp4 (minutes for heavy scenes)
+pnpm render <name> --draft             # half resolution, ~3× faster: out/<name>_draft.mp4, to judge motion
 pnpm sheet <name> [fps=2] [from=0] [seconds=10]   # out/<name>_sheet_<from>.jpg from the video
 pnpm listen <name>                     # soundtrack only: cue list, loudness, out/<name>_audio.png
 pnpm typecheck && pnpm test

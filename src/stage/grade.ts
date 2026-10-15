@@ -1,4 +1,5 @@
 import { rng } from '../core/random';
+import { pixelScale, scaleFilter } from '../paper/resolution';
 
 /**
  * Film finishing, drawn in screen space after everything else: a color grade, grain, bars,
@@ -17,7 +18,7 @@ export function grade(ctx: CanvasRenderingContext2D, filter: string): void {
   g.drawImage(ctx.canvas, 0, 0);
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.filter = filter;
+  ctx.filter = scaleFilter(filter, pixelScale(ctx));
   ctx.drawImage(copy, 0, 0);
   ctx.restore();
 }

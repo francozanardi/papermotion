@@ -36,11 +36,11 @@ export async function open(): Promise<Session> {
   return { server, browser, page, base, newPage, close: async () => { await browser.close(); await server.close(); } };
 }
 
-/** Load an example paused, ready for `frame(n)` / `probe(n)`; throws on page errors. */
-export async function load(page: Page, base: string, name: string, errors: string[]): Promise<{ fps: number; frames: number }> {
+/** Load an example paused, ready for `frame(n)` / `probe(n)`; throws on page errors. `scale` < 1 loads a draft. */
+export async function load(page: Page, base: string, name: string, errors: string[], scale = 1): Promise<{ fps: number; frames: number }> {
   page.removeAllListeners('pageerror');
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(`${base}/?example=${name}&headless`);
+  await page.goto(`${base}/?example=${name}&headless${scale !== 1 ? `&scale=${scale}` : ''}`);
   await page.waitForFunction(() => (globalThis as { ready?: boolean }).ready || document.querySelector('p'), null, { timeout: 60_000 });
   if (errors.length) throw new Error(`${name}: ${errors.join('; ')}`);
   const meta = await page.evaluate(() => (globalThis as unknown as { meta?: { fps: number; frames: number } }).meta);

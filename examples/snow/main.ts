@@ -68,6 +68,7 @@ export class SnowScene extends Stage {
   constructor(canvas: HTMLCanvasElement) {
     super(canvas, { duration: 27, preroll: 0.6 });
     this.paper.light = { x: 0.7, y: 0.65 };
+    this.paper.edgeColor = 'rgba(255, 250, 240, 0.3)';
     this.world.ground = ground;
     const c = this.clawd, cam = this.cam;
     c.floor = (x, y) => (this.onBall && this.ball ? this.ball.center.y - this.ball.r + 6 : this.world.floorBelow(x, y));

@@ -126,6 +126,7 @@ borrow from them.
 ```bash
 pnpm install
 pnpm render snow        # offline render → out/snow.mp4 (any name in examples/catalog.ts, or: all)
+pnpm render snow --draft  # half resolution, ~3× faster → out/snow_draft.mp4
 pnpm dev                # http://localhost:5299/?example=snow plays out/snow.mp4; add &live to run it live
 pnpm grab snow 1 4 7    # frames + probes at those seconds → out/grab/ (add --probe for numbers only)
 pnpm sheet snow         # contact sheet of the rendered video
@@ -190,7 +191,7 @@ placed at `videoTime(cue.at)`, so they stay in sync through slow motion, and can
 frame to ffmpeg (H.264; libx264 if available, else libopenh264). It relies on what a mounted stage
 exposes on `window`: `meta`, `frame(n)` (JPEG data URL), `probe(n)`, `audio()` (the mixed soundtrack as
 a WAV, plus the cues), `reset()` and `ready`. `?example=<name>&headless` mounts a stage paused, waiting
-for frames to be pulled; frames must be requested in increasing order. When a scene has a soundtrack,
+for frames to be pulled (`&scale=0.5` for a draft); frames must be requested in increasing order. When a scene has a soundtrack,
 the render muxes it into the MP4 and writes `out/<name>.wav` and `out/<name>_audio.png`.
 
 ## License

@@ -26,7 +26,9 @@ Read this before making a scene. Each note is a mistake we made, or a fix that w
 - **`draw` only draws.** `pnpm render` draws on several pages at once, and each page simulates through the
   frames of the others without drawing them. Anything that changes the story in `draw` (spawning a particle,
   firing a cue, drawing from a shared `rng`) makes the video depend on which frames were drawn. Do it in
-  `update` / `lateUpdate`, or derive it statelessly from the time and a seed.
+  `update` / `lateUpdate`, or derive it statelessly from the time and a seed. Each frame starts from a
+  clean canvas and from the paper's light, edge and shadow colors as they were before the first frame,
+  so set the ones a frame needs before drawing with them, not at the end of the previous frame.
 
 ## 2. Engine versus content
 
@@ -182,7 +184,9 @@ Read this before making a scene. Each note is a mistake we made, or a fix that w
   render time. Clip to the box first (`Scratch.borrow(box)` does). `source-atop`, `destination-out` and
   `overlay` stay where the source is.
 - The renders run in headless Chromium's software canvas, single-threaded per page: `pnpm render` draws on
-  one page per core (`--jobs N` to change it). Profile a frame with `performance.now()` around
+  one page per core (`--jobs N` to change it). `--draft` renders at half resolution, about three times
+  faster: scenes keep drawing in frame pixels, and shadows, blurs and screen-space overlays scale with it
+  (use `frameSize(ctx)` and `screenSpace(ctx)`, not `ctx.canvas` and an identity transform). Profile a frame with `performance.now()` around
   `renderFrame` plus a 1-pixel `getImageData` (drawing is deferred until something reads the canvas).
 - Drop shadows with blur on every small piece add up. Background props can use smaller shadows.
 
