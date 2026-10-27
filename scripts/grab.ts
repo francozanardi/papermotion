@@ -46,8 +46,16 @@ try {
     const sheet = join(dir, `${name}_sheet.jpg`), cols = Math.min(4, files.length);
     const cells = files.map((_, i) => `${(i % cols) ? Array.from({ length: i % cols }, (_, k) => `w${k}`).join('+') : 0}_${Math.floor(i / cols) ? Array.from({ length: Math.floor(i / cols) }, (_, k) => `h${k * cols}`).join('+') : 0}`);
     const labels = files.map((_, i) => `[${i}]scale=640:-1,drawtext=text='${times[i]}s':x=8:y=8:fontsize=22:fontcolor=white:box=1:boxcolor=black@0.6[v${i}]`).join(';');
-    execFileSync('ffmpeg', ['-v', 'error', '-y', ...files.flatMap(f => ['-i', f]), '-filter_complex',
-      `${labels};${files.map((_, i) => `[v${i}]`).join('')}xstack=inputs=${files.length}:layout=${cells.join('|')}:fill=black`, sheet]);
+    const stack = `xstack=inputs=${files.length}:layout=${cells.join('|')}:fill=black`;
+    try {
+      execFileSync('ffmpeg', ['-v', 'error', '-y', ...files.flatMap(f => ['-i', f]), '-filter_complex',
+        `${labels};${files.map((_, i) => `[v${i}]`).join('')}${stack}`, sheet]);
+    } catch {
+      // Some ffmpeg builds (e.g. Homebrew without freetype) have no drawtext: tile without labels.
+      execFileSync('ffmpeg', ['-v', 'error', '-y', ...files.flatMap(f => ['-i', f]), '-filter_complex',
+        `${files.map((_, i) => `[${i}]scale=640:-1[v${i}]`).join(';')};${files.map((_, i) => `[v${i}]`).join('')}${stack}`, sheet]);
+      console.log('! ffmpeg lacks drawtext: sheet labels omitted');
+    }
     console.log(`sheet → ${sheet}`);
   }
 } finally {
