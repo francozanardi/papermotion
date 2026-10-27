@@ -5,13 +5,53 @@ import { join } from 'node:path';
 import { type Browser, type Page, chromium } from 'playwright-core';
 import { type ViteDevServer, createServer } from 'vite';
 
+/** Where Playwright keeps its browsers, by platform. `PLAYWRIGHT_BROWSERS_PATH` wins when set. */
+function cacheRoots(): string[] {
+  const roots = process.env.PLAYWRIGHT_BROWSERS_PATH ? [process.env.PLAYWRIGHT_BROWSERS_PATH] : [];
+  const home = homedir();
+  if (process.platform === 'darwin') roots.push(join(home, 'Library', 'Caches', 'ms-playwright'));
+  else if (process.platform === 'win32') roots.push(join(process.env.LOCALAPPDATA ?? join(home, 'AppData', 'Local'), 'ms-playwright'));
+  else roots.push(join(process.env.XDG_CACHE_HOME ?? join(home, '.cache'), 'ms-playwright'));
+  return roots;
+}
+
+/**
+ * The executable inside a `chromium-<build>` directory, relative to it.
+ * Playwright renamed the macOS bundle from Chromium to Chrome for Testing and
+ * splits it per architecture, so the running arch is tried before the other one.
+ */
+function candidates(): string[] {
+  const arm = process.arch === 'arm64';
+  if (process.platform === 'darwin') {
+    const mac = (arch: string) => [
+      `chrome-mac-${arch}/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`,
+      `chrome-mac-${arch}/Chromium.app/Contents/MacOS/Chromium`,
+    ];
+    return [...(arm ? mac('arm64') : mac('x64')), ...(arm ? mac('x64') : mac('arm64')), 'chrome-mac/Chromium.app/Contents/MacOS/Chromium'];
+  }
+  if (process.platform === 'win32') return ['chrome-win64/chrome.exe', 'chrome-win/chrome.exe'];
+  return ['chrome-linux64/chrome', 'chrome-linux/chrome'];
+}
+
+/** The build number in a `chromium-<build>` directory name, or -1 for anything else. */
+function build(dir: string): number {
+  const n = Number(dir.replace('chromium-', ''));
+  return Number.isInteger(n) ? n : -1;
+}
+
+/** Path to a Playwright-installed Chromium: `CHROMIUM_PATH` if set, else the newest build in the cache. */
 export function findChromium(): string {
   if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
-  const cache = join(homedir(), '.cache', 'ms-playwright');
-  const builds = existsSync(cache) ? readdirSync(cache).filter(d => d.startsWith('chromium-')).sort().reverse() : [];
-  for (const b of builds) {
-    const bin = join(cache, b, 'chrome-linux64', 'chrome');
-    if (existsSync(bin)) return bin;
+  const exes = candidates();
+  for (const root of cacheRoots()) {
+    if (!existsSync(root)) continue;
+    const builds = readdirSync(root).filter(d => d.startsWith('chromium-') && build(d) >= 0).sort((a, b) => build(b) - build(a));
+    for (const b of builds) {
+      for (const exe of exes) {
+        const bin = join(root, b, exe);
+        if (existsSync(bin)) return bin;
+      }
+    }
   }
   throw new Error('No Chromium found: run `npx playwright install chromium` or set CHROMIUM_PATH.');
 }
