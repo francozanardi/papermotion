@@ -1,4 +1,4 @@
-# papermotion
+# Papermotion
 
 **A paper-cutout animation engine built for AI agents.** You describe a short film; an agent writes it
 as code, extends the engine when it needs something new, renders it offline and checks its own frames.
@@ -28,14 +28,14 @@ effort).*
 
 https://github.com/user-attachments/assets/0873431e-e55c-4cfe-9abd-1ab61f62b933
 
-### Tejados (`rooftops`)
+### Rooftops (`rooftops`)
 
 A cat walks a moonlit ridge, leaps to the next roof and startles a pigeon. *Made with Claude Opus 5.5
 (medium effort).*
 
 https://github.com/user-attachments/assets/4064b7b3-0aa6-441d-850a-623b773f4aae
 
-### Marea (`sea`)
+### Tide (`sea`)
 
 A moon jelly drifts toward the light; a curious fish circles it and leaves with a school. *Made with
 Claude Opus 5.5 (medium effort).*
@@ -54,15 +54,31 @@ An elder and a child keep a fire alive across eras. *Made with GPT 6 Astra (ligh
 
 https://github.com/user-attachments/assets/7212194f-1166-49d9-8cb8-fa7a240a1b3e
 
-`examples/` also has **A veces, cae** (`kite`), a kid whose kite falls when the wind drops; **Lluvia**
-(`rain`), a woman running through a storm toward a bus stop; and **Manos** (`hands`), hands on a rock
+`examples/` also has **Sometimes, it falls** (`kite`), a kid whose kite falls when the wind drops; **Rain**
+(`rain`), a woman running through a storm toward a bus stop; and **Hands** (`hands`), hands on a rock
 wall under a turning sky.
 
 Most films were close to one-shot: the agent got a one-line brief and full creative freedom, and the
 human asked for a few small corrections (a sound too loud, a timing, a framing). They are in
 [`examples/`](examples/); each can be rendered with `pnpm render <name>`.
 
-## How it works
+## Related project: tscaps
+
+Papermotion makes a film from nothing. **[tscaps](https://github.com/francozanardi/tscaps)** starts from
+a video you recorded: it is an open-source editor for short videos (TikTok, Reels, Shorts) that runs in
+your browser, and your coding agent edits with it over MCP. It works on the same idea: the agent writes the
+animation as code and checks its own frames. Its animated graphics are HTML, CSS and JavaScript that the
+agent writes for each video, run on a virtual clock and exported frame by frame.
+
+<table>
+  <tr>
+    <td width="35%"><video src="https://github.com/user-attachments/assets/67df786e-45e9-4d3f-bba0-995e7ac2ee63" controls playsinline></video></td>
+    <td><sub>"Edit this video and add animations that explain what he says, on half of the screen"</sub><br><br><sub>One prompt to Claude Code with Opus 5.5 at medium effort, with nothing changed by hand. The
+    source video was generated with AI.</sub></td>
+  </tr>
+</table>
+
+## How papermotion works
 
 - **Engine vs content.** `src/` is a generic engine: paper rendering, bone rigs with springs, a
   deterministic physics world, cameras with parallax, choreography, weather and sound. A film is
@@ -159,7 +175,7 @@ The code runs on Node 22.18+ (TypeScript scripts run natively).
 ## A scene
 
 ```ts
-class Marea extends Stage {
+class SeaScene extends Stage {
   constructor(canvas: HTMLCanvasElement) {
     super(canvas, { duration: 10 });
     // build the world, cast and camera…

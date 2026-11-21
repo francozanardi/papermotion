@@ -1,5 +1,5 @@
 /**
- * "Marea" — a moon jelly drifts up toward the light; a curious fish circles it, touches it,
+ * "Tide" — a moon jelly drifts up toward the light; a curious fish circles it, touches it,
  * and leaves with a passing school. Content only: seascape, cast, and the fish's performance as beats.
  */
 import {
