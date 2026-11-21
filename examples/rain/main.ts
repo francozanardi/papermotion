@@ -1,5 +1,5 @@
 /**
- * "Lluvia" — a woman runs through a storm toward a far light: the bus stop where someone is about to
+ * "Rain" — a woman runs through a storm toward a far light: the bus stop where someone is about to
  * leave. She trips on the fence line and goes down in the mud, gets up and keeps going, limping, then
  * running again. The bus overtakes her and
  * soaks her. At the stop the traveller is about to board, turns, and she throws herself into their arms.

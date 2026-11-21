@@ -1,5 +1,5 @@
 /**
- * "A veces, cae." — a kid runs with a kite at dusk; the wind drops and the kite falls.
+ * "Sometimes, it falls." — a kid runs with a kite at dusk; the wind drops and the kite falls.
  * Content only: landscape, cast and time-shaped intents. Behaviour comes from the engine.
  */
 import {

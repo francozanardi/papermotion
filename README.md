@@ -62,7 +62,7 @@ Most films were close to one-shot: the agent got a one-line brief and full creat
 human asked for a few small corrections (a sound too loud, a timing, a framing). They are in
 [`examples/`](examples/); each can be rendered with `pnpm render <name>`.
 
-## Sister project: tscaps
+## Related project: tscaps
 
 Papermotion makes a film from nothing. **[tscaps](https://github.com/francozanardi/tscaps)** starts from
 a video you recorded: it is an open-source editor for short videos (TikTok, Reels, Shorts) that runs in
@@ -78,7 +78,7 @@ agent writes for each video, run on a virtual clock and exported frame by frame.
   </tr>
 </table>
 
-## How it works
+## How papermotion works
 
 - **Engine vs content.** `src/` is a generic engine: paper rendering, bone rigs with springs, a
   deterministic physics world, cameras with parallax, choreography, weather and sound. A film is

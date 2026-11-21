@@ -1,5 +1,5 @@
 /**
- * "Tejados" — a cat walks a moonlit ridge, sizes up the gap, wiggles, leaps to the next roof,
+ * "Rooftops" — a cat walks a moonlit ridge, sizes up the gap, wiggles, leaps to the next roof,
  * startles a pigeon and sits to watch the moon. Content only: city, cast and the cat's beats.
  */
 import {
