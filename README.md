@@ -117,6 +117,22 @@ original. The engine's lessons still travel with it, in the skill and in `docs/f
 Engine updates don't flow into existing projects automatically. Diff your `src/` against a newer
 template if you want them.
 
+## Sister project: tscaps
+
+papermotion makes a film from nothing. **[tscaps](https://github.com/francozanardi/tscaps)** starts from
+a video you recorded: it is an open-source editor for short videos (TikTok, Reels, Shorts) that runs in
+your browser, and your coding agent edits with it over MCP. It works on the same idea: the agent writes the
+animation as code and checks its own frames. Its animated graphics are HTML, CSS and JavaScript that the
+agent writes for each video, run on a virtual clock and exported frame by frame.
+
+<table>
+  <tr>
+    <td width="35%"><video src="https://github.com/user-attachments/assets/67df786e-45e9-4d3f-bba0-995e7ac2ee63" controls playsinline></video></td>
+    <td><sub>"Edit this video and add animations that explain what he says, on half of the screen"</sub><br><br><sub>One prompt to Claude Code with Opus 5.5 at medium effort, with nothing changed by hand. The
+    source video was generated with AI.</sub></td>
+  </tr>
+</table>
+
 ## Working in this repository
 
 This repository is where the engine is developed, and it contains the example films. If you ask an agent
